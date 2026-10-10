@@ -262,11 +262,17 @@ export default function App() {
         {tab === 'onlyfans' && (
           <>
             <h1 style={s.h1}>OnlyFans</h1>
-            <p style={s.sub}>Proxied to OnlyCreatorAPI.</p>
-            <div style={s.card}>
-              <a href="/onlyfans/ui" target="_blank" rel="noreferrer" style={s.btn(true) as any}>Open dashboard</a>
-              <a href="/onlyfans/api/health" target="_blank" rel="noreferrer" style={{ ...s.btn(), marginLeft: 10 } as any}>Health</a>
+            <p style={s.sub}>Integrated OnlyCreatorAPI — accounts, chats, subscribers, earnings, vault.</p>
+            <div style={{ ...s.card, padding: 0, overflow: 'hidden' }}>
+              <iframe
+                src="/onlyfans/ui"
+                title="OnlyCreatorAPI"
+                style={{ width: '100%', height: '75vh', border: 0, background: '#111' }}
+              />
             </div>
+            <p style={{ color: '#a1a1a6', fontSize: 13, marginTop: 8 }}>
+              Default API key: <code>darksuite-dev-key</code> (set in compose). Health: <a href="/onlyfans/api/health" style={{ color: '#2997ff' }}>/onlyfans/api/health</a>
+            </p>
           </>
         )}
 
