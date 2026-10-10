@@ -12,34 +12,34 @@ model User {
   label     String
   keyHash   String   @unique
   createdAt DateTime @default(now())
+  connections Connection[]
   submissions Submission[]
   scheduled   Scheduled[]
-  communities Community[]
 }
 
-model Community {
+model Connection {
+  id        String   @id @default(cuid())
   userId    String
-  name      String
-  rulesHash String
-  approved  Boolean  @default(false)
+  platform  String
+  externalId String?
+  status    String   @default("pending")
+  metadata  Json?
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@id([userId, name])
+  @@unique([userId, platform])
 }
 
 model Submission {
   id           String   @id @default(cuid())
   userId       String
+  platform     String   @default("reddit")
   fingerprint  String
   title        String
-  subreddit    String
-  state        String
-  redditUrl    String?
+  body         String   @default("")
+  target       String?
+  state        String   @default("draft")
+  externalUrl  String?
   error        String?
-  score        Int?
-  replyEnabled Boolean  @default(false)
-  replyTemplate String?
-  clicks       Int      @default(0)
-  leads        Int      @default(0)
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, fingerprint])
@@ -48,10 +48,9 @@ model Submission {
 model Scheduled {
   id          String   @id @default(cuid())
   userId      String
+  platform    String
   title       String
-  kind        String
-  text        String   @default("")
-  url         String   @default("")
+  body        String   @default("")
   scheduledAt DateTime
   state       String   @default("pending")
   result      String?
