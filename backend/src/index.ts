@@ -20,7 +20,7 @@ async function auth(req: express.Request) {
   return prisma.user.findUnique({ where: { keyHash: digest(header) } });
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, db: 'postgres' }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, surface: 'dark-suite', db: 'postgres' }));
 
 app.post('/api/signup', async (req, res) => {
   const label = String(req.body?.label || 'User').slice(0, 200);
@@ -32,12 +32,34 @@ app.post('/api/signup', async (req, res) => {
 app.get('/api/status', async (req, res) => {
   const user = await auth(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const connections = await prisma.connection.findMany({ where: { userId: user.id } });
   res.json({
     userId: user.id,
     label: user.label,
+    surface: 'Dark Suite',
     onlyCreatorUrl: ONLYCREATOR,
-    snapchat: { connected: false },
+    connections: connections.map(c => ({ platform: c.platform, status: c.status })),
   });
+});
+
+app.get('/api/connections', async (req, res) => {
+  const user = await auth(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const list = await prisma.connection.findMany({ where: { userId: user.id } });
+  res.json(list);
+});
+
+app.post('/api/connections', async (req, res) => {
+  const user = await auth(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const platform = String(req.body?.platform || '').trim();
+  if (!platform) return res.status(400).json({ error: 'platform required' });
+  const conn = await prisma.connection.upsert({
+    where: { userId_platform: { userId: user.id, platform } },
+    update: { status: req.body?.status || 'connected', metadata: req.body?.metadata || {} },
+    create: { userId: user.id, platform, status: req.body?.status || 'connected', metadata: req.body?.metadata || {} },
+  });
+  res.json(conn);
 });
 
 app.get('/api/history', async (req, res) => {
@@ -55,49 +77,80 @@ app.post('/api/publish', async (req, res) => {
   const user = await auth(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
   const title = String(req.body?.title || '').trim();
-  const text = String(req.body?.text || '').trim();
-  const subreddit = String(req.body?.subreddit || 'draft').trim();
+  const body = String(req.body?.body || req.body?.text || '').trim();
+  const platform = String(req.body?.platform || 'reddit').trim();
+  const target = String(req.body?.target || req.body?.subreddit || '').trim() || null;
   if (!title) return res.status(400).json({ error: 'Title required' });
+
+  if (platform === 'snapchat') {
+    return res.status(400).json({
+      error: 'Snapchat has no organic posting API. Use Share to Snapchat (Creative Kit) from the client, or connect via Login Kit for identity only.',
+      code: 'SNAPCHAT_NO_ORGANIC_API',
+    });
+  }
+
   const sub = await prisma.submission.create({
     data: {
       userId: user.id,
+      platform,
       fingerprint: randomUUID(),
       title,
-      subreddit,
-      state: 'published',
-      redditUrl: null,
+      body,
+      target,
+      state: 'queued',
     },
   });
-  res.json({ id: sub.id, title: sub.title, state: sub.state });
+  res.json({ id: sub.id, title: sub.title, platform: sub.platform, state: sub.state });
 });
 
-app.get('/api/analytics', async (req, res) => {
+app.get('/api/schedule', async (req, res) => {
   const user = await auth(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
-  const rows = await prisma.submission.groupBy({
-    by: ['subreddit'],
-    where: { userId: user.id },
-    _count: true,
+  const items = await prisma.scheduled.findMany({ where: { userId: user.id }, orderBy: { scheduledAt: 'desc' } });
+  res.json(items);
+});
+
+app.post('/api/schedule', async (req, res) => {
+  const user = await auth(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const platform = String(req.body?.platform || 'reddit');
+  if (platform === 'snapchat') {
+    return res.status(400).json({ error: 'Snapchat cannot be scheduled unattended. Use Creative Kit share flow.', code: 'SNAPCHAT_NO_SCHEDULE' });
+  }
+  const when = new Date(req.body?.scheduledAt);
+  if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
+    return res.status(400).json({ error: 'scheduledAt must be a valid future time' });
+  }
+  const item = await prisma.scheduled.create({
+    data: {
+      userId: user.id,
+      platform,
+      title: String(req.body?.title || 'Untitled'),
+      body: String(req.body?.body || ''),
+      scheduledAt: when,
+    },
   });
-  res.json(rows);
+  res.json(item);
 });
 
-app.post('/api/snapchat/status', async (req, res) => {
-  const user = await auth(req);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
-  res.json({ connected: false, serial: process.env.SNAPCHAT_ADB_SERIAL || 'none' });
+app.get('/api/snapchat/info', (_req, res) => {
+  res.json({
+    organicPosting: false,
+    loginKit: true,
+    creativeKit: true,
+    note: 'No public API for organic Snap/Story posting. Login Kit for identity. Creative Kit for user-initiated share.',
+  });
 });
 
-app.post('/api/snapchat/record-draft', async (req, res) => {
+app.post('/api/snapchat/connect', async (req, res) => {
   const user = await auth(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
-  res.json({ saved: true, note: 'Stub — connect emulator for real recording', durationMs: req.body?.durationMs || 5000 });
-});
-
-app.post('/api/snapchat/post-draft', async (req, res) => {
-  const user = await auth(req);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
-  res.json({ posted: true, note: 'Stub — connect emulator for real posting' });
+  const conn = await prisma.connection.upsert({
+    where: { userId_platform: { userId: user.id, platform: 'snapchat' } },
+    update: { status: 'connected', metadata: { method: 'login-kit' } },
+    create: { userId: user.id, platform: 'snapchat', status: 'connected', metadata: { method: 'login-kit' } },
+  });
+  res.json({ connected: true, connection: conn });
 });
 
 app.use('/onlyfans', (req, res) => {
@@ -125,4 +178,4 @@ app.use('/onlyfans', (req, res) => {
 });
 
 const port = Number(process.env.PORT || 4000);
-app.listen(port, '0.0.0.0', () => console.log(`Backend listening on ${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`Dark Suite backend on ${port}`));
