@@ -1,19 +1,24 @@
-# Dark Suite — Multi-tool Suite (public mirror)
+# Dark Suite
 
-This is a public mirror of the DarkSuite project (Reddit Browser Router + OnlyCreatorAPI proxy).
+React frontend + Express/Prisma backend + Postgres.
 
-See the private original for the latest full UI. Core source (server, browser automation, store, etc.) is included here.
-
-## Quick start
+## Deploy (Docker)
 
 ```bash
-npm install
-npx playwright install chromium
-npm start
+git clone https://github.com/marbad1994/testjdje.git
+cd testjdje
+docker compose up -d --build
 ```
 
-Open http://127.0.0.1:3000
+- UI: http://YOUR_IP:4123
+- Backend API: http://YOUR_IP:4000
+- Postgres: localhost:5432 (user/pass/db: darksuite)
 
-Set ONLYCREATOR_API_URL to point at a running OnlyCreatorAPI instance for the /onlyfans/ proxy.
+## First use
 
-Full docs and features are in the private DarkSuite repo.
+Open the UI → Settings → Create user. The API key is stored in the browser.
+
+## Notes
+
+- Snapchat endpoints are stubs until an emulator is connected.
+- OnlyFans proxy expects ONLYCREATOR_API_URL (default http://host.docker.internal:3001).
