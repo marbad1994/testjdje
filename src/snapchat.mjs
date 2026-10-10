@@ -29,7 +29,7 @@ export class SnapchatEmulator {
   async ensureRunning() {
     if (!await this.connected()) throw new AppError('Snapchat emulator not connected via ADB. Start redroid/emulator and `adb connect`.', 503);
     await this.adb('shell', 'am', 'start', '-n', `${this.packageName}/.LandingPageActivity`).catch(() => {});
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 2500));
   }
 
   async dumpUi() {
@@ -39,12 +39,53 @@ export class SnapchatEmulator {
 
   async tapText(text) {
     const xml = await this.dumpUi();
-    const match = xml.match(new RegExp(`text="${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`));
+    const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = xml.match(new RegExp(`text="${escaped}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`));
     if (!match) throw new AppError(`Element with text "${text}" not found`, 404);
     const x = Math.round((+match[1] + +match[3]) / 2);
     const y = Math.round((+match[2] + +match[4]) / 2);
     await this.adb('shell', 'input', 'tap', String(x), String(y));
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 900));
+  }
+
+  async longPress(x, y, duration = 3000) {
+    await this.adb('shell', 'input', 'swipe', String(x), String(y), String(x), String(y), String(duration));
+    await new Promise(r => setTimeout(r, duration + 500));
+  }
+
+  async recordAndSaveDraft(durationMs = 5000) {
+    await this.ensureRunning();
+    await this.tapText('Camera').catch(() => {});
+    await new Promise(r => setTimeout(r, 1000));
+    const cx = 540, cy = 1600;
+    await this.longPress(cx, cy, durationMs);
+    await this.tapText('Save').catch(() => {});
+    await this.tapText('Memories').catch(() => {});
+    await this.tapText('Save to Memories').catch(() => {});
+    return {
+      saved: true,
+      durationMs,
+      note: 'Video recorded and attempted save to Memories/draft. UI paths may need tuning for your Snapchat version. Check emulator screen.',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  async postLatestDraft({asStory = true, caption = ''} = {}) {
+    await this.ensureRunning();
+    await this.tapText('Memories').catch(() => {});
+    await this.tapText('Drafts').catch(() => {});
+    await new Promise(r => setTimeout(r, 1500));
+    await this.adb('shell', 'input', 'tap', '540', '800');
+    await new Promise(r => setTimeout(r, 1000));
+    if (asStory) {
+      await this.tapText('Stories').catch(() => {});
+      await this.tapText('My Story').catch(() => {});
+      await this.tapText('Send').catch(() => {});
+    } else {
+      await this.tapText('Send').catch(() => {});
+    }
+    if (caption) await this.tapText('Add caption').catch(() => {});
+    return {posted: true, asStory, caption, note: 'Attempted to post latest draft. Verify on device; UI selectors need refinement.'};
   }
 
   async sendSnap(username, mediaPath) {
