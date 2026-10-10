@@ -1,1 +1,271 @@
-FULL_CONTENT_PLACEHOLDER
+<!doctype html>
+<html lang="en" style="color-scheme: dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Suite</title>
+<meta name="description" content="Rank Reddit communities for your written post, publish through your connected Reddit browser session, and manage scheduling, engagement and analytics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#000000;--bg-alt:#111113;--surface:rgba(22,22,24,.82);--panel:#161618;
+ --border:rgba(255,255,255,.10);--border-strong:rgba(255,255,255,.20);
+ --text:#F5F5F7;--muted:#A1A1A6;
+ --primary:#F5F5F7;--primary-strong:#FFFFFF;--primary-fg:#000000;--primary-soft:rgba(255,255,255,.08);
+ --cta-bg:#F5F5F7;--cta-fg:#000000;
+ --link:#2997FF;--focus:#2997FF;
+ --danger:#FF453A;--danger-soft:rgba(255,69,58,.12);
+ --success:#30D158;--success-soft:rgba(48,209,88,.12);
+ --radius:20px;--shadow:0 1px 2px rgba(0,0,0,.5),0 8px 28px rgba(0,0,0,.4);
+ --font:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.55;letter-spacing:-.011em;-webkit-font-smoothing:antialiased}
+code,pre,kbd,samp,tt{font-family:var(--font);background:var(--bg-alt);border:1px solid var(--border);border-radius:8px}
+code{padding:1px 7px;font-size:.92em;font-weight:500}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:rgba(41,151,255,.25)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.skip{position:absolute;left:16px;top:-72px;z-index:100;background:var(--panel);color:var(--text);border:2px solid var(--focus);border-radius:999px;padding:10px 18px;font-weight:600;transition:top .15s ease}
+.skip:focus{top:16px}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:wait}
+svg{flex:none}
+
+aside{width:240px;position:fixed;inset:0 auto 0 0;background:var(--bg-alt);border-right:1px solid var(--border);padding:28px 20px;display:flex;flex-direction:column;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand .mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;background:var(--primary-soft);color:var(--text);flex:none}
+.brand .mark svg{width:18px;height:18px}
+.brand .sub{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+nav{margin-top:40px;display:grid;gap:3px}
+nav button{display:flex;align-items:center;gap:11px;background:none;border:0;text-align:left;padding:11px 13px;border-radius:12px;color:var(--muted);font-size:14px;font-weight:600;min-height:44px}
+nav button svg{width:17px;height:17px}
+nav button:hover{color:var(--text);background:var(--primary-soft)}
+nav button.active{background:var(--primary-soft);color:var(--text)}
+.side-note{margin-top:auto;color:var(--muted);font-size:11.5px;line-height:1.7;border-top:1px solid var(--border);padding-top:18px}
+
+main{margin-left:240px;padding:28px 44px 60px;max-width:1500px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:24px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.connection{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel);border:1px solid var(--border-strong);border-radius:999px;font-size:13px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;min-height:40px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.connection.ok .dot{background:var(--success)}
+
+.intro{margin:34px 0 26px}
+.eyebrow{display:block;color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+h1{font-size:clamp(28px,3.4vw,38px);line-height:1.08;letter-spacing:-.03em;margin:0 0 10px;font-weight:800}
+h2{font-size:18px;margin:0 0 6px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+h2 svg{width:18px;height:18px;color:var(--muted)}
+p{color:var(--muted);line-height:1.6;margin:0 0 8px}
+p.lead{font-size:16px;max-width:640px}
+
+.layout{display:grid;grid-template-columns:minmax(340px,1.05fr) minmax(320px,1fr);gap:20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:22px}
+.tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--border-strong);color:var(--muted);border-radius:999px;padding:4px 9px;white-space:nowrap}
+
+label{display:block;font-size:13px;font-weight:600;margin:18px 0 7px}
+label .req{color:var(--muted);font-weight:400}
+input[type="text"],input[type="url"],input[type="password"],input[type="email"],input[type="datetime-local"],input[type="number"],textarea,select{
+ width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border-strong);
+ background:var(--bg-alt);color:var(--text);font-family:inherit;font-size:14.5px;line-height:1.5;
+ transition:border-color .15s ease,box-shadow .15s ease
+}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px rgba(41,151,255,.22)}
+textarea{min-height:190px;resize:vertical;line-height:1.6}
+.help{font-size:12.5px;color:var(--muted);line-height:1.6}
+.row{display:flex;gap:12px;align-items:center}
+.row>*{flex:1}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;min-height:46px;border-radius:999px;border:1px solid transparent;font-family:inherit;font-size:14.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer;white-space:nowrap;transition:transform .12s ease,opacity .12s ease,border-color .12s ease,background-color .12s ease}
+.btn:active{transform:scale(.98)}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--cta-bg);color:var(--cta-fg)}
+.btn.primary:hover{opacity:.86}
+.btn.secondary{background:var(--primary-soft);color:var(--text);border-color:var(--border-strong)}
+.btn.secondary:hover{border-color:var(--text)}
+.btn.ghost{background:transparent;color:var(--link);padding-left:6px;padding-right:6px;min-height:auto}
+.btn.ghost:hover{text-decoration:underline}
+.btn.small{min-height:38px;padding:7px 15px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.loading .lbl{visibility:hidden}
+.btn.loading{position:relative}
+.btn .spinner{display:none;position:absolute;inset:0;margin:auto;width:16px;height:16px}
+.btn.loading .spinner{display:block}
+.spinner{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.actions{margin-top:22px;display:grid;gap:11px}
+
+.notice{padding:14px 18px;border:1px solid var(--border);background:var(--panel);border-radius:14px;display:none;font-size:13.5px;line-height:1.6;margin-bottom:20px;align-items:flex-start;gap:10px}
+.notice.show{display:flex}
+.notice.good{background:var(--success-soft);border-color:transparent}
+.notice svg{width:18px;height:18px;margin-top:1px;color:var(--muted)}
+.notice.good svg{color:var(--success)}
+
+.empty{padding:44px 18px;text-align:center;border:1px dashed var(--border-strong);border-radius:14px;margin-top:20px;color:var(--muted)}
+.empty svg{width:28px;height:28px;color:var(--muted)}
+.empty h3{font-size:15px;margin:14px 0 6px;color:var(--text)}
+.empty p{font-size:13px;margin:0}
+
+.formula{border-top:1px solid var(--border);padding-top:18px;margin-top:22px;font-size:12.5px;color:var(--muted)}
+.formula div{display:flex;justify-content:space-between;padding:5px 0}
+
+.result{border:1px solid var(--border);border-radius:14px;margin-top:10px;padding:16px}
+.result:first-child{border-color:rgba(48,209,88,.4);background:var(--success-soft)}
+.result strong{font-size:15px}
+.result .score{float:right;font-weight:700;color:var(--text)}
+.result p{font-size:12.5px;margin:7px 0}
+.result a{color:var(--link);font-size:12.5px;display:inline-flex;align-items:center;gap:4px}
+.result a svg{width:12px;height:12px}
+
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--primary-soft);color:var(--text)}
+.badge.blocked{background:var(--danger-soft);color:var(--danger)}
+
+.check{display:flex;gap:11px;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--text)}
+.check input{width:17px;height:17px;margin-top:2px;accent-color:var(--text)}
+
+.rules{white-space:pre-wrap;font-size:13px;line-height:1.7;padding:18px;background:var(--bg-alt);border:1px solid var(--border);border-radius:12px}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--border)}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+td a{color:var(--link);display:inline-flex;align-items:center;gap:4px}
+.table-wrap{overflow-x:auto}
+
+.statline{display:flex;gap:22px;font-size:12.5px;color:var(--muted);margin:18px 0}
+.subtle{font-size:12px;color:var(--muted)}
+footer.app{padding:30px 0 10px;color:var(--muted);font-size:11px}
+
+.st{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.st.published{background:var(--success-soft);color:var(--success)}
+.st.submitting,.st.processing,.st.pending{background:var(--primary-soft);color:var(--text)}
+.st.blocked,.st.failed{background:var(--danger-soft);color:var(--danger)}
+.st.uncertain{background:rgba(255,159,10,.14);color:#FF9F0A}
+.st.canceled{background:var(--primary-soft);color:var(--muted)}
+
+.tabs{display:none}
+.tabs.active{display:block}
+
+.list{display:grid;gap:10px;margin-top:4px}
+.list .item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--bg-alt);border:1px solid var(--border);border-radius:14px;padding:13px 16px;font-size:13.5px}
+.list .item .main{flex:1;min-width:160px}
+.list .item strong{font-size:14px}
+
+.key-reveal{background:var(--bg-alt);border:1px solid var(--border-strong);border-radius:14px;padding:18px;margin-top:16px}
+.key-reveal code{display:block;word-break:break-all;padding:12px 14px;margin-top:8px;font-size:13px}
+.copy-btn{background:var(--primary-soft);color:var(--text);border:1px solid var(--border-strong);font-family:var(--font);font-size:12px;font-weight:700;border-radius:8px;padding:7px 13px;cursor:pointer;margin-top:10px;min-height:36px}
+.copy-btn:hover{border-color:var(--text)}
+
+@media(max-width:1060px){
+ aside{width:200px;padding:22px 14px}
+ main{margin-left:200px;padding:22px}
+ .layout{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+ aside{position:static;width:auto;padding:16px;border-right:0;border-bottom:1px solid var(--border)}
+ nav{margin-top:16px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+ nav::-webkit-scrollbar{display:none}
+ nav button{flex:none;white-space:nowrap}
+ .side-note{display:none}
+ main{margin:0;padding:18px}
+ h1{font-size:28px}
+ .card{padding:18px}
+ header.top{padding-bottom:18px;flex-wrap:wrap;gap:10px}
+ .row{flex-wrap:wrap}
+}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<aside>
+ <div class="brand">
+  <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span>
+  <span>Dark Suite<span class="sub">Multi-tool</span></span>
+ </div>
+ <nav aria-label="Main navigation">
+  <button class="active" data-tab="compose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Compose & route</button>
+  <button data-tab="communities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Communities</button>
+  <button data-tab="schedule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Schedule</button>
+  <button data-tab="engagement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> Engagement</button>
+  <button data-tab="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Analytics</button>
+  <button data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</button>
+  <button data-tab="onlyfans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> OnlyFans</button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg> Settings</button>
+ </nav>
+ <div class="side-note">Isolated from the compliant product suite. Your own account. Your own browser session.</div>
+</aside>
+<main id="main">
+<header class="top">
+ <span>Workspace / Dark Suite</span>
+ <button class="connection" id="connection"><span class="dot"></span><span id="connectionText">Checking connection</span></button>
+</header>
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+<section class="tabs active" id="compose">
+ <div class="intro">
+  <span class="eyebrow">Draft to destination</span>
+  <h1>Write once. Find your audience.</h1>
+  <p class="lead">Your post, matched to a relevant community. Only communities you've reviewed and approved can receive automatic posts.</p>
+ </div>
+ <div class="layout">
+  <div class="card">
+   <div class="card-head">
+    <div><h2>Your next post</h2><span class="subtle">Your copy is submitted exactly as written.</span></div>
+    <span class="tag">Original draft</span>
+   </div>
+   <label for="kind">Post type</label>
+   <select id="kind"><option value="self">Text post</option><option value="link">Link post</option></select>
+   <label for="title">Title <span id="count" class="subtle">0 / 300</span></label>
+   <input id="title" maxlength="300" placeholder="A useful insight your audience will care about">
+   <div id="textField"><label for="text">Post body</label><textarea id="text" maxlength="40000" placeholder="Share your post here. Include your website link only where community rules permit it."></textarea></div>
+   <div id="urlField" hidden><label for="url">Website URL</label><input id="url" type="url" placeholder="https://yourwebsite.com/?utm_source=reddit"></div>
+   <div class="actions">
+    <button class="btn secondary" id="rank"><span class="lbl">Find the best community</span><span class="spinner"></span></button>
+    <button class="btn primary" id="publish"><span class="lbl">Choose & publish automatically</span><span class="spinner"></span></button>
+    <span class="help">Publishing ranks current candidates again and submits to one eligible community.</span>
+   </div>
+  </div>
+  <div>
+   <div class="card">
+    <div class="card-head"><div><h2>Community match</h2><span class="subtle">Live browser data. Explained decisions.</span></div><span class="tag">Ranking</span></div>
+    <div id="results"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><h3>A destination for your draft</h3><p>Write your post, then find a community.</p></div></div>
+    <div class="formula"><strong style="color:var(--text)">How the ranking works</strong>
+     <div><span>Topic overlap with community & recent posts</span><span>70%</span></div>
+     <div><span>Replies on related recent posts</span><span>15%</span></div>
+     <div><span>Recent activity</span><span>10%</span></div>
+     <div><span>Your recorded lead conversion rate</span><span>5%</span></div>
+    </div>
+   </div>
+   <p class="help" style="margin-top:14px">Start in Communities: review live rules and approve where your content is permitted.</p>
+  </div>
+ </div>
+</section>
+
+<!-- Additional sections for communities, schedule, engagement, analytics, history, settings would follow here in the full file -->
+<section class="tabs" id="onlyfans">
+ <div class="intro">
+  <span class="eyebrow">Creator tools</span>
+  <h1>OnlyFans via OnlyCreatorAPI</h1>
+  <p class="lead">Full OnlyFans multi-account API, dashboard, chats, subscribers, earnings and more — proxied through Dark Suite.</p>
+ </div>
+ <div class="card">
+  <div class="card-head">
+   <div><h2>OnlyCreatorAPI</h2><span class="subtle">Run the OnlyCreatorAPI server separately and set ONLYCREATOR_API_URL.</span></div>
+   <span class="tag" id="ofStatus">Checking…</span>
+  </div>
+  <p>Dashboard and API are available under <code>/onlyfans/</code> (proxied). Open the UI or call endpoints with your OnlyCreatorAPI key.</p>
+  <div class="actions">
+   <a class="btn primary" href="/onlyfans/ui" target="_blank">Open OnlyFans Dashboard</a>
+   <a class="btn secondary" href="/onlyfans/api/health" target="_blank">Check API Health</a>
+  </div>
+  <p class="help" style="margin-top:16px">Start OnlyCreatorAPI on the configured port (default 3001), then refresh. The proxy forwards <code>/onlyfans/*</code> to it. See README for details.</p>
+  <iframe id="ofFrame" src="/onlyfans/ui" style="width:100%;height:720px;border:1px solid var(--border);border-radius:14px;margin-top:20px;background:var(--bg-alt)" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+ </div>
+</section>
+</main>
+</body>
+</html>
