@@ -1,30 +1,540 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reddit Route — Draft to destination</title><meta name="description" content="Rank Reddit communities for your written post and publish through your connected Reddit browser session."><style>
-:root{--ink:#18211d;--muted:#68736d;--line:#dce3dc;--paper:#f5f7f1;--green:#225c43;--orange:#ff5d32}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px system-ui,-apple-system,sans-serif}button,input,textarea,select{font:inherit}button,a,input,textarea,select{outline-offset:4px}button{cursor:pointer}button:disabled{opacity:.45;cursor:wait}aside{width:228px;position:fixed;inset:0 auto 0 0;background:#fff;border-right:1px solid var(--line);padding:30px 22px;display:flex;flex-direction:column}.brand{font-size:23px;font-weight:800;letter-spacing:-1px}.brand span{display:inline-grid;place-items:center;background:var(--orange);color:#fff;width:32px;height:32px;border-radius:10px;margin-right:9px}nav{margin-top:48px;display:grid;gap:10px}nav button{background:none;border:0;text-align:left;padding:13px 15px;border-radius:9px;color:var(--muted)}nav button.active{background:#e8f0e6;color:var(--green);font-weight:650}.side-note{margin-top:auto;color:var(--muted);font-size:12px;line-height:1.7;border-top:1px solid var(--line);padding-top:20px}main{margin-left:228px;padding:30px 48px;max-width:1550px}header{display:flex;justify-content:space-between;align-items:center;padding-bottom:28px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.connection{padding:7px 12px;background:#fff;border:1px solid var(--line);border-radius:20px}.intro{margin:36px 0 28px}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:700;color:var(--green)}h1{font-size:40px;letter-spacing:-1.7px;line-height:1.1;margin:12px 0}p{color:var(--muted);line-height:1.65}h2{font-size:19px;margin:0 0 7px;letter-spacing:-.4px}.layout{display:grid;grid-template-columns:minmax(330px,1.1fr) minmax(320px,1fr);gap:24px}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:26px}.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.tag{font-size:10px;border:1px solid var(--line);padding:5px 8px;border-radius:5px;color:var(--muted);letter-spacing:1px}label{display:block;font-size:12px;font-weight:650;margin:20px 0 8px}input,textarea,select{display:block;width:100%;border:1px solid var(--line);background:#fafbf8;border-radius:8px;padding:12px 14px;color:var(--ink)}textarea{min-height:205px;resize:vertical;line-height:1.6}.row{display:flex;gap:12px;align-items:center}.row>*{flex:1}.primary,.secondary{border:0;border-radius:8px;padding:13px 16px;font-weight:650}.primary{background:var(--green);color:#fff}.secondary{background:#edf1e9;color:var(--green)}.actions{margin-top:24px;display:grid;gap:12px}.help{font-size:12px;color:var(--muted);line-height:1.6}.empty{padding:46px 18px;text-align:center;border:1px dashed var(--line);border-radius:10px;margin-top:23px}.orbit{font-size:32px;color:var(--green)}.empty h3{font-size:16px;margin:15px 0 9px}.empty p{font-size:13px}.formula{border-top:1px solid var(--line);padding-top:20px;margin-top:25px;font-size:12px;color:var(--muted)}.formula div{display:flex;justify-content:space-between;padding:6px 0}.result{border:1px solid var(--line);border-radius:10px;margin-top:12px;padding:16px}.result:first-child{border-color:#a4b9a6;background:#f5f9f2}.result strong{font-size:16px}.result .score{float:right;font-weight:750;color:var(--green)}.result p{font-size:12px;margin:8px 0}.result a{color:var(--green);font-size:12px}.badge{display:inline-block;font-size:10px;padding:4px 7px;background:#e8f0e6;border-radius:4px}.blocked{background:#fff0df;color:#8b5a20}.notice{padding:15px 20px;border:1px solid #e8d4b5;background:#fff8ec;border-radius:10px;display:none;font-size:13px;line-height:1.6;margin-bottom:20px}.notice.show{display:block}.notice.good{background:#e8f0e6;border-color:#a4b9a6}.tabs{display:none}.tabs.active{display:block}.rules{white-space:pre-wrap;font-size:13px;line-height:1.7;padding:20px;background:#f5f7f1;border-radius:8px}.check{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:1.5}.check input{width:18px;margin-top:2px}.smallbtn{border:1px solid var(--line);border-radius:6px;background:#fff;padding:6px 10px;font-size:12px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:15px 10px;border-bottom:1px solid var(--line)}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}td a{color:var(--green)}code{background:#edf1e9;border-radius:4px;padding:3px 5px;font-size:12px}.setup li{line-height:1.8;margin:10px 0}.statline{display:flex;gap:25px;font-size:12px;color:var(--muted);margin:20px 0}.subtle{font-size:12px;color:var(--muted)}footer{padding:25px 0;color:var(--muted);font-size:11px}.busy{font-size:13px;color:var(--green)}@media(max-width:1050px){aside{width:185px;padding:25px 14px}main{margin-left:185px;padding:25px}.layout{grid-template-columns:1fr}}@media(max-width:640px){aside{position:static;width:auto;padding:18px;border-right:0;border-bottom:1px solid var(--line)}nav{margin-top:18px;display:flex;gap:3px;overflow:auto}nav button{padding:9px;font-size:12px}.side-note{display:none}main{margin:0;padding:20px}h1{font-size:32px}.card{padding:20px}.table-wrap{overflow:auto}header{padding-bottom:20px}.row{flex-wrap:wrap}}
-</style></head><body><aside><div class="brand"><span>↗</span>Reddit Route</div><nav aria-label="Main navigation"><button class="active" data-tab="compose">✎ &nbsp; Compose & route</button><button data-tab="communities">◎ &nbsp; Communities</button><button data-tab="history">↗ &nbsp; Publishing history</button><button data-tab="settings">⚙ &nbsp; Settings</button></nav><div class="side-note">YOUR WORDS. THE RIGHT PLACE.<br>Private workspace<br>One draft → one community</div></aside><main><header><span>WORKSPACE / REDDIT MARKETING</span><button class="connection smallbtn" id="connection">○ &nbsp; Checking connection</button></header><div id="notice" class="notice" role="status" aria-live="polite"></div>
-<section class="tabs active" id="compose"><div class="intro"><div class="eyebrow">DRAFT TO DESTINATION</div><h1>Write once. Find your audience.</h1><p>Your post, matched to a relevant community. Built around clicks and leads.</p></div><div class="layout"><div class="card"><div class="card-head"><div><h2>Your next post</h2><span class="subtle">Your copy is submitted exactly as written.</span></div><span class="tag">ORIGINAL DRAFT</span></div><label for="kind">POST TYPE</label><select id="kind"><option value="self">Text post</option><option value="link">Link post</option></select><label for="title">TITLE <span id="count" class="subtle">0 / 300</span></label><input id="title" maxlength="300" placeholder="A useful insight your audience will care about"><div id="textField"><label for="text">POST BODY</label><textarea id="text" maxlength="40000" placeholder="Share your post here. Explain the problem, provide something useful, and include your website link only where community rules permit it."></textarea></div><div id="urlField" hidden><label for="url">WEBSITE URL</label><input id="url" type="url" placeholder="https://yourwebsite.com/?utm_source=reddit"></div><div class="actions"><button class="secondary" id="rank">Find the best community</button><button class="primary" id="publish">Choose & publish automatically ↗</button><span class="help">Publishing ranks current candidates again and submits to one eligible community. Only communities you approved can receive automatic posts.</span></div></div><div><div class="card"><div class="card-head"><div><h2>Community match</h2><span class="subtle">Live browser data. Explained decisions.</span></div><span class="tag">RANKING</span></div><div id="results"><div class="empty"><div class="orbit">◎</div><h3>A destination for your draft</h3><p>Write your post, then find a community.<br>No simulated scores or sample results.</p></div></div><div class="formula"><strong>How the ranking works</strong><div><span>Topic overlap with community & recent posts</span><span>70%</span></div><div><span>Replies on related recent posts</span><span>15%</span></div><div><span>Recent activity</span><span>10%</span></div><div><span>Your recorded lead conversion rate</span><span>5%</span></div><p class="help">This is a heuristic fit score, not a predicted click or lead count. Close or weak matches stop automatic posting.</p></div></div><p class="help">Start in Communities: review live rules and approve where your content is permitted. Without approvals, ranking discovers candidates but cannot post.</p></div></div></section>
-<section class="tabs" id="communities"><div class="intro"><div class="eyebrow">YOUR PUBLISHING BOUNDARY</div><h1>Choose communities you trust.</h1><p>Review rules once. If they change, automatic posting stops until you review again.</p></div><div class="layout"><div class="card"><h2>Review a community</h2><label for="sub">SUBREDDIT</label><div class="row"><input id="sub" placeholder="r/yourcommunity"><button class="secondary" id="review">Load rules</button></div><div id="ruleReview" hidden><p id="subDescription"></p><div class="rules" id="rules"></div><p><a id="rulesLink" target="_blank" rel="noopener">Open full community rules on Reddit ↗</a></p><input id="flair" hidden value=""><label class="check"><input type="checkbox" id="allowed"><span>I reviewed the full rules and posting guidelines. They permit the type of content and promotion I intend to publish.</span></label><button class="primary" id="approve">Approve for automatic posting</button></div></div><div class="card"><h2>Approved destinations</h2><p class="help">Ranking evaluates up to 12 approved communities. Topic relevance and current rules are checked for each post.</p><div id="communityList">Loading…</div></div></div></section>
-<section class="tabs" id="history"><div class="intro"><div class="eyebrow">POSTS & OUTCOMES</div><h1>See what actually worked.</h1><p>Record clicks and leads from your website analytics to inform future rankings.</p></div><div class="card table-wrap"><table><thead><tr><th>Post</th><th>Community</th><th>Status</th><th>Clicks / leads</th></tr></thead><tbody id="historyRows"></tbody></table><p class="help">Outcomes are entered manually. Use UTM links in your own post or destination URL for website attribution. Published means Reddit accepted the submission; moderation may happen later.</p></div></section>
-<section class="tabs" id="settings"><div class="intro"><div class="eyebrow">BROWSER SESSION CONNECTION</div><h1>Your account. Your browser.</h1><p>Users call this app’s API. The backend runs Reddit in headless Chromium.</p></div><div class="card"><h2>Connection setup</h2><p id="setupStatus"></p><label for="apiKey">YOUR APP API KEY</label><input id="apiKey" type="password" autocomplete="off" placeholder="API key issued for your user"><button id="saveKey" class="secondary" style="margin-top:12px">Connect to this app</button><ol class="setup"><li>The server operator creates a user with <code>npm run user -- "User name"</code> and gives that user their API key.</li><li>On the machine running the app, connect that user’s Reddit session: <code>npm run login -- USER_ID</code>. A visible browser opens for manual login and verification.</li><li>The session is saved privately for that user. All subsequent ranking and posting jobs run headlessly through rendered Reddit pages.</li><li>Test the connection, approve relevant communities, then submit your written post.</li></ol><button id="test" class="secondary">Test browser session</button><p class="help">No Reddit API keys are required. If Reddit requires verification or the page layout changes, the browser stops and reports the issue. The first version cannot automate required post flair.</p></div><div class="card" style="margin-top:22px"><h2>API endpoints</h2><p class="help">The same backend powers this workspace and programmatic use. Every API request requires Authorization: Bearer YOUR_APP_API_KEY. Each user has an isolated browser session, approved communities, and publishing history.</p><p><code>POST /api/rank</code> — rank your draft</p><p><code>POST /api/publish</code> — choose and publish one post</p><p><code>GET /api/history</code> — submission history</p><p class="help">A content fingerprint prevents duplicate submissions. Uncertain submission outcomes require checking Reddit; the app never retries them automatically.</p></div></section><footer>REDDIT ROUTE &nbsp; / &nbsp; Your content, routed with context.</footer></main>
+<!doctype html>
+<html lang="en" style="color-scheme: dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark Suite — Reddit Route</title>
+<meta name="description" content="Rank Reddit communities for your written post, publish through your connected Reddit browser session, and manage scheduling, engagement and analytics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#000000;--bg-alt:#111113;--surface:rgba(22,22,24,.82);--panel:#161618;
+ --border:rgba(255,255,255,.10);--border-strong:rgba(255,255,255,.20);
+ --text:#F5F5F7;--muted:#A1A1A6;
+ --primary:#F5F5F7;--primary-strong:#FFFFFF;--primary-fg:#000000;--primary-soft:rgba(255,255,255,.08);
+ --cta-bg:#F5F5F7;--cta-fg:#000000;
+ --link:#2997FF;--focus:#2997FF;
+ --danger:#FF453A;--danger-soft:rgba(255,69,58,.12);
+ --success:#30D158;--success-soft:rgba(48,209,88,.12);
+ --radius:20px;--shadow:0 1px 2px rgba(0,0,0,.5),0 8px 28px rgba(0,0,0,.4);
+ --font:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.55;letter-spacing:-.011em;-webkit-font-smoothing:antialiased}
+code,pre,kbd,samp,tt{font-family:var(--font);background:var(--bg-alt);border:1px solid var(--border);border-radius:8px}
+code{padding:1px 7px;font-size:.92em;font-weight:500}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:rgba(41,151,255,.25)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.skip{position:absolute;left:16px;top:-72px;z-index:100;background:var(--panel);color:var(--text);border:2px solid var(--focus);border-radius:999px;padding:10px 18px;font-weight:600;transition:top .15s ease}
+.skip:focus{top:16px}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:wait}
+svg{flex:none}
+
+aside{width:240px;position:fixed;inset:0 auto 0 0;background:var(--bg-alt);border-right:1px solid var(--border);padding:28px 20px;display:flex;flex-direction:column;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand .mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;background:var(--primary-soft);color:var(--text);flex:none}
+.brand .mark svg{width:18px;height:18px}
+.brand .sub{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+nav{margin-top:40px;display:grid;gap:3px}
+nav button{display:flex;align-items:center;gap:11px;background:none;border:0;text-align:left;padding:11px 13px;border-radius:12px;color:var(--muted);font-size:14px;font-weight:600;min-height:44px}
+nav button svg{width:17px;height:17px}
+nav button:hover{color:var(--text);background:var(--primary-soft)}
+nav button.active{background:var(--primary-soft);color:var(--text)}
+.side-note{margin-top:auto;color:var(--muted);font-size:11.5px;line-height:1.7;border-top:1px solid var(--border);padding-top:18px}
+
+main{margin-left:240px;padding:28px 44px 60px;max-width:1500px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:24px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.connection{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel);border:1px solid var(--border-strong);border-radius:999px;font-size:13px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;min-height:40px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.connection.ok .dot{background:var(--success)}
+
+.intro{margin:34px 0 26px}
+.eyebrow{display:block;color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+h1{font-size:clamp(28px,3.4vw,38px);line-height:1.08;letter-spacing:-.03em;margin:0 0 10px;font-weight:800}
+h2{font-size:18px;margin:0 0 6px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+h2 svg{width:18px;height:18px;color:var(--muted)}
+p{color:var(--muted);line-height:1.6;margin:0 0 8px}
+p.lead{font-size:16px;max-width:640px}
+
+.layout{display:grid;grid-template-columns:minmax(340px,1.05fr) minmax(320px,1fr);gap:20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:22px}
+.tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--border-strong);color:var(--muted);border-radius:999px;padding:4px 9px;white-space:nowrap}
+
+label{display:block;font-size:13px;font-weight:600;margin:18px 0 7px}
+label .req{color:var(--muted);font-weight:400}
+input[type="text"],input[type="url"],input[type="password"],input[type="email"],input[type="datetime-local"],input[type="number"],textarea,select{
+ width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border-strong);
+ background:var(--bg-alt);color:var(--text);font-family:inherit;font-size:14.5px;line-height:1.5;
+ transition:border-color .15s ease,box-shadow .15s ease
+}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px rgba(41,151,255,.22)}
+textarea{min-height:190px;resize:vertical;line-height:1.6}
+.help{font-size:12.5px;color:var(--muted);line-height:1.6}
+.row{display:flex;gap:12px;align-items:center}
+.row>*{flex:1}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;min-height:46px;border-radius:999px;border:1px solid transparent;font-family:inherit;font-size:14.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer;white-space:nowrap;transition:transform .12s ease,opacity .12s ease,border-color .12s ease,background-color .12s ease}
+.btn:active{transform:scale(.98)}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--cta-bg);color:var(--cta-fg)}
+.btn.primary:hover{opacity:.86}
+.btn.secondary{background:var(--primary-soft);color:var(--text);border-color:var(--border-strong)}
+.btn.secondary:hover{border-color:var(--text)}
+.btn.ghost{background:transparent;color:var(--link);padding-left:6px;padding-right:6px;min-height:auto}
+.btn.ghost:hover{text-decoration:underline}
+.btn.small{min-height:38px;padding:7px 15px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.loading .lbl{visibility:hidden}
+.btn.loading{position:relative}
+.btn .spinner{display:none;position:absolute;inset:0;margin:auto;width:16px;height:16px}
+.btn.loading .spinner{display:block}
+.spinner{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.actions{margin-top:22px;display:grid;gap:11px}
+
+.notice{padding:14px 18px;border:1px solid var(--border);background:var(--panel);border-radius:14px;display:none;font-size:13.5px;line-height:1.6;margin-bottom:20px;align-items:flex-start;gap:10px}
+.notice.show{display:flex}
+.notice.good{background:var(--success-soft);border-color:transparent}
+.notice svg{width:18px;height:18px;margin-top:1px;color:var(--muted)}
+.notice.good svg{color:var(--success)}
+
+.empty{padding:44px 18px;text-align:center;border:1px dashed var(--border-strong);border-radius:14px;margin-top:20px;color:var(--muted)}
+.empty svg{width:28px;height:28px;color:var(--muted)}
+.empty h3{font-size:15px;margin:14px 0 6px;color:var(--text)}
+.empty p{font-size:13px;margin:0}
+
+.formula{border-top:1px solid var(--border);padding-top:18px;margin-top:22px;font-size:12.5px;color:var(--muted)}
+.formula div{display:flex;justify-content:space-between;padding:5px 0}
+
+.result{border:1px solid var(--border);border-radius:14px;margin-top:10px;padding:16px}
+.result:first-child{border-color:rgba(48,209,88,.4);background:var(--success-soft)}
+.result strong{font-size:15px}
+.result .score{float:right;font-weight:700;color:var(--text)}
+.result p{font-size:12.5px;margin:7px 0}
+.result a{color:var(--link);font-size:12.5px;display:inline-flex;align-items:center;gap:4px}
+.result a svg{width:12px;height:12px}
+
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--primary-soft);color:var(--text)}
+.badge.blocked{background:var(--danger-soft);color:var(--danger)}
+
+.check{display:flex;gap:11px;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--text)}
+.check input{width:17px;height:17px;margin-top:2px;accent-color:var(--text)}
+
+.rules{white-space:pre-wrap;font-size:13px;line-height:1.7;padding:18px;background:var(--bg-alt);border:1px solid var(--border);border-radius:12px}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--border)}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+td a{color:var(--link);display:inline-flex;align-items:center;gap:4px}
+.table-wrap{overflow-x:auto}
+
+.statline{display:flex;gap:22px;font-size:12.5px;color:var(--muted);margin:18px 0}
+.subtle{font-size:12px;color:var(--muted)}
+footer.app{padding:30px 0 10px;color:var(--muted);font-size:11px}
+
+.st{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+.st.published{background:var(--success-soft);color:var(--success)}
+.st.submitting,.st.processing,.st.pending{background:var(--primary-soft);color:var(--text)}
+.st.blocked,.st.failed{background:var(--danger-soft);color:var(--danger)}
+.st.uncertain{background:rgba(255,159,10,.14);color:#FF9F0A}
+.st.canceled{background:var(--primary-soft);color:var(--muted)}
+
+.tabs{display:none}
+.tabs.active{display:block}
+
+.list{display:grid;gap:10px;margin-top:4px}
+.list .item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--bg-alt);border:1px solid var(--border);border-radius:14px;padding:13px 16px;font-size:13.5px}
+.list .item .main{flex:1;min-width:160px}
+.list .item strong{font-size:14px}
+
+.key-reveal{background:var(--bg-alt);border:1px solid var(--border-strong);border-radius:14px;padding:18px;margin-top:16px}
+.key-reveal code{display:block;word-break:break-all;padding:12px 14px;margin-top:8px;font-size:13px}
+.copy-btn{background:var(--primary-soft);color:var(--text);border:1px solid var(--border-strong);font-family:var(--font);font-size:12px;font-weight:700;border-radius:8px;padding:7px 13px;cursor:pointer;margin-top:10px;min-height:36px}
+.copy-btn:hover{border-color:var(--text)}
+
+@media(max-width:1060px){
+ aside{width:200px;padding:22px 14px}
+ main{margin-left:200px;padding:22px}
+ .layout{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+ aside{position:static;width:auto;padding:16px;border-right:0;border-bottom:1px solid var(--border)}
+ nav{margin-top:16px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+ nav::-webkit-scrollbar{display:none}
+ nav button{flex:none;white-space:nowrap}
+ .side-note{display:none}
+ main{margin:0;padding:18px}
+ h1{font-size:28px}
+ .card{padding:18px}
+ header.top{padding-bottom:18px;flex-wrap:wrap;gap:10px}
+ .row{flex-wrap:wrap}
+}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<aside>
+ <div class="brand">
+  <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span>
+  <span>Dark Suite<span class="sub">Reddit Route</span></span>
+ </div>
+ <nav aria-label="Main navigation">
+  <button class="active" data-tab="compose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Compose &amp; route</button>
+  <button data-tab="communities"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Communities</button>
+  <button data-tab="schedule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Schedule</button>
+  <button data-tab="engagement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> Engagement</button>
+  <button data-tab="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Analytics</button>
+  <button data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg> Settings</button>
+ </nav>
+ <div class="side-note">Isolated from the compliant product suite. Your own account. Your own browser session.</div>
+</aside>
+<main id="main">
+<header class="top">
+ <span>Workspace / Reddit marketing</span>
+ <button class="connection" id="connection"><span class="dot"></span><span id="connectionText">Checking connection</span></button>
+</header>
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+<section class="tabs active" id="compose">
+ <div class="intro">
+  <span class="eyebrow">Draft to destination</span>
+  <h1>Write once. Find your audience.</h1>
+  <p class="lead">Your post, matched to a relevant community. Only communities you've reviewed and approved can receive automatic posts.</p>
+ </div>
+ <div class="layout">
+  <div class="card">
+   <div class="card-head">
+    <div><h2>Your next post</h2><span class="subtle">Your copy is submitted exactly as written.</span></div>
+    <span class="tag">Original draft</span>
+   </div>
+   <label for="kind">Post type</label>
+   <select id="kind"><option value="self">Text post</option><option value="link">Link post</option></select>
+   <label for="title">Title <span id="count" class="subtle">0 / 300</span></label>
+   <input id="title" maxlength="300" placeholder="A useful insight your audience will care about">
+   <div id="textField"><label for="text">Post body</label><textarea id="text" maxlength="40000" placeholder="Share your post here. Include your website link only where community rules permit it."></textarea></div>
+   <div id="urlField" hidden><label for="url">Website URL</label><input id="url" type="url" placeholder="https://yourwebsite.com/?utm_source=reddit"></div>
+   <div class="actions">
+    <button class="btn secondary" id="rank"><span class="lbl">Find the best community</span><span class="spinner"></span></button>
+    <button class="btn primary" id="publish"><span class="lbl">Choose &amp; publish automatically</span><span class="spinner"></span></button>
+    <span class="help">Publishing ranks current candidates again and submits to one eligible community.</span>
+   </div>
+  </div>
+  <div>
+   <div class="card">
+    <div class="card-head"><div><h2>Community match</h2><span class="subtle">Live browser data. Explained decisions.</span></div><span class="tag">Ranking</span></div>
+    <div id="results"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><h3>A destination for your draft</h3><p>Write your post, then find a community.</p></div></div>
+    <div class="formula"><strong style="color:var(--text)">How the ranking works</strong>
+     <div><span>Topic overlap with community &amp; recent posts</span><span>70%</span></div>
+     <div><span>Replies on related recent posts</span><span>15%</span></div>
+     <div><span>Recent activity</span><span>10%</span></div>
+     <div><span>Your recorded lead conversion rate</span><span>5%</span></div>
+    </div>
+   </div>
+   <p class="help" style="margin-top:14px">Start in Communities: review live rules and approve where your content is permitted.</p>
+  </div>
+ </div>
+</section>
+
+<section class="tabs" id="communities">
+ <div class="intro"><span class="eyebrow">Your publishing boundary</span><h1>Choose communities you trust.</h1><p class="lead">Review rules once. If they change, automatic posting stops until you review again.</p></div>
+ <div class="layout">
+  <div class="card">
+   <h2>Review a community</h2>
+   <label for="sub">Subreddit</label>
+   <div class="row"><input id="sub" placeholder="r/yourcommunity"><button class="btn secondary" id="review">Load rules</button></div>
+   <div id="ruleReview" hidden>
+    <p id="subDescription"></p>
+    <div class="rules" id="rules"></div>
+    <p><a id="rulesLink" target="_blank" rel="noopener">Open full community rules on Reddit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a></p>
+    <label class="check" style="margin-top:14px"><input type="checkbox" id="allowed"><span>I reviewed the full rules and posting guidelines. They permit the type of content and promotion I intend to publish.</span></label>
+    <button class="btn primary" id="approve" style="margin-top:16px">Approve for automatic posting</button>
+   </div>
+  </div>
+  <div class="card">
+   <h2>Approved destinations</h2>
+   <p class="help">Ranking evaluates up to 12 approved communities for every post.</p>
+   <div class="list" id="communityList">Loading…</div>
+  </div>
+ </div>
+</section>
+
+<section class="tabs" id="schedule">
+ <div class="intro"><span class="eyebrow">Queue it for later</span><h1>Schedule a draft.</h1><p class="lead">Save a draft with a future time. A background check publishes it automatically once due, using the same ranking and approval rules as posting now.</p></div>
+ <div class="layout">
+  <div class="card">
+   <h2>New scheduled post</h2>
+   <label for="sKind">Post type</label>
+   <select id="sKind"><option value="self">Text post</option><option value="link">Link post</option></select>
+   <label for="sTitle">Title</label><input id="sTitle" maxlength="300" placeholder="Title">
+   <div id="sTextField"><label for="sText">Post body</label><textarea id="sText" maxlength="40000" placeholder="Post body"></textarea></div>
+   <div id="sUrlField" hidden><label for="sUrl">Website URL</label><input id="sUrl" type="url" placeholder="https://yourwebsite.com"></div>
+   <label for="sWhen">Publish at</label><input id="sWhen" type="datetime-local">
+   <div class="actions"><button class="btn primary" id="scheduleBtn"><span class="lbl">Add to queue</span><span class="spinner"></span></button><span class="help">Checked every minute by default (SCHEDULE_POLL_SECONDS). Cancel any time before it fires.</span></div>
+  </div>
+  <div class="card">
+   <h2>Queue</h2>
+   <div class="list" id="scheduleList">Loading…</div>
+  </div>
+ </div>
+</section>
+
+<section class="tabs" id="engagement">
+ <div class="intro"><span class="eyebrow">Reply to real comments on your own posts</span><h1>Engagement, on your account only.</h1><p class="lead">Auto-reply uses one template you write, only on comments left on posts this account published, and never replies to the same comment twice.</p></div>
+ <div class="layout">
+  <div class="card">
+   <div class="card-head"><h2>Published posts</h2><button class="btn secondary small" id="runEngagement"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run now</button></div>
+   <div class="list" id="engagementTargets">Loading…</div>
+  </div>
+  <div class="card">
+   <h2>Reply history</h2>
+   <p class="help">Every reply sent is recorded here and can never be sent again to the same comment.</p>
+   <div class="list" id="engagementHistory">Loading…</div>
+  </div>
+ </div>
+</section>
+
+<section class="tabs" id="analytics">
+ <div class="intro"><span class="eyebrow">Does the ranking model actually work</span><h1>Performance by community.</h1><p class="lead">Average match score at publish time next to the clicks and leads you've recorded, per subreddit.</p></div>
+ <div class="card table-wrap">
+  <table>
+   <thead><tr><th>Subreddit</th><th>Posts</th><th>Avg. score</th><th>Clicks</th><th>Leads</th><th>Conversion</th></tr></thead>
+   <tbody id="analyticsRows"></tbody>
+  </table>
+ </div>
+</section>
+
+<section class="tabs" id="history">
+ <div class="intro"><span class="eyebrow">Posts &amp; outcomes</span><h1>See what actually worked.</h1><p class="lead">Record clicks and leads from your website analytics to inform future rankings.</p></div>
+ <div class="card table-wrap">
+  <table><thead><tr><th>Post</th><th>Community</th><th>Status</th><th>Clicks / leads</th></tr></thead><tbody id="historyRows"></tbody></table>
+  <p class="help" style="margin-top:14px">Outcomes are entered manually. Published means Reddit accepted the submission; moderation may happen later.</p>
+ </div>
+</section>
+
+<section class="tabs" id="settings">
+ <div class="intro"><span class="eyebrow">Account &amp; browser session</span><h1>Your account. Your browser.</h1><p class="lead">Users call this app's API. The backend runs Reddit in headless Chromium — never a shared identity.</p></div>
+
+ <div class="card" style="max-width:640px">
+  <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>Create your account</h2>
+  <p class="help">Creates your app user and API key directly — no operator step required for this part.</p>
+  <label for="signupLabel">Your name or business</label>
+  <input id="signupLabel" placeholder="e.g. Acme Marketing">
+  <button class="btn secondary" id="signupBtn" style="margin-top:14px"><span class="lbl">Create account</span><span class="spinner"></span></button>
+  <div id="signupResult" hidden class="key-reveal">
+   <strong style="color:var(--text)">Save this now — it's shown only once.</strong>
+   <div class="help" style="margin-top:6px">User ID</div><code id="signupId"></code>
+   <div class="help" style="margin-top:10px">API key</div><code id="signupKey"></code>
+   <button class="copy-btn" id="copyKey">Copy API key</button>
+   <p class="help" style="margin-top:14px">Next, on the machine running this app, an operator connects your Reddit session:</p>
+   <code id="signupLoginCmd" style="display:block;margin-top:6px"></code>
+  </div>
+ </div>
+
+ <div class="card" style="max-width:640px;margin-top:18px">
+  <h2>Connection setup</h2>
+  <p id="setupStatus" class="help"></p>
+  <label for="apiKey">Your app API key</label>
+  <input id="apiKey" type="password" autocomplete="off" placeholder="API key issued for your user">
+  <button class="btn secondary" id="saveKey" style="margin-top:12px">Connect to this app</button>
+  <ol class="help" style="padding-left:18px;line-height:1.9">
+   <li>Create your account above, or have the operator run <code>npm run user -- "User name"</code>.</li>
+   <li>On the machine running the app, connect your Reddit session: <code>npm run login -- USER_ID</code>. A visible browser opens for manual login and verification.</li>
+   <li>The session is saved privately for your user. All ranking and posting jobs then run headlessly through rendered Reddit pages.</li>
+   <li>Test the connection, approve relevant communities, then submit your written post.</li>
+  </ol>
+  <button class="btn secondary" id="test">Test browser session</button>
+  <p class="help" style="margin-top:12px">If Reddit requires verification or the page layout changes, the browser stops and reports the issue. No CAPTCHA bypass, vote manipulation, or multi-account automation — ever.</p>
+ </div>
+
+ <div class="card" style="max-width:640px;margin-top:18px">
+  <h2>API endpoints</h2>
+  <p class="help">Every API request requires <code>Authorization: Bearer YOUR_APP_API_KEY</code> (except <code>/api/signup</code>). Each user has an isolated browser session, approved communities, and history.</p>
+  <p><code>POST /api/rank</code> &nbsp;·&nbsp; <code>POST /api/publish</code> &nbsp;·&nbsp; <code>GET /api/history</code></p>
+  <p><code>POST /api/schedule</code> &nbsp;·&nbsp; <code>GET /api/schedule</code> &nbsp;·&nbsp; <code>POST /api/engagement</code> &nbsp;·&nbsp; <code>POST /api/engagement/run</code> &nbsp;·&nbsp; <code>GET /api/analytics</code></p>
+ </div>
+</section>
+
+<footer class="app">Dark Suite &nbsp;/&nbsp; Reddit Route &nbsp;—&nbsp; your content, routed with context.</footer>
+</main>
 <script>
 const $=id=>document.getElementById(id);let currentRules=null;let busy=false;let apiKey=sessionStorage.getItem('router-api-key')||'';
-function notify(message,good=false){$('notice').textContent=message;$('notice').className='notice show'+(good?' good':'');}
-async function api(path,data){const r=await fetch('/api/'+path,{method:data?'POST':'GET',headers:{Authorization:'Bearer '+apiKey,...(data?{'content-type':'application/json'}:{})},body:data?JSON.stringify(data):undefined});const j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j;}
-async function act(button,fn){if(busy)return;busy=true;const original=button.textContent;button.disabled=true;button.textContent='Working…';try{await fn()}catch(e){notify(e.message)}finally{busy=false;button.disabled=false;button.textContent=original;}}
-function tab(name){document.querySelectorAll('.tabs').forEach(x=>x.classList.toggle('active',x.id===name));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));if(name==='settings')$('apiKey').value=apiKey;if(name==='history')history();if(name==='communities')communities();}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));$('connection').onclick=()=>tab('settings');
-function draft(){const d={title:$('title').value,text:$('text').value,kind:$('kind').value,url:$('url').value};if(!d.title.trim())throw Error('Write a title first.');if(d.kind==='link'&&!d.url)throw Error('Enter your website URL.');return d;}
-function storeDraft(){}
-function postType(){$('textField').hidden=$('kind').value==='link';$('urlField').hidden=$('kind').value!=='link';$('count').textContent=$('title').value.length+' / 300';}
-for(const id of ['title','text','kind','url'])$(id).addEventListener('input',()=>{storeDraft();postType();});
-postType();
+function notify(message,good=false){
+ $('notice').innerHTML=(good?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>')+'<span>'+message+'</span>';
+ $('notice').className='notice show'+(good?' good':'');
+}
+async function api(path,data,auth=true){
+ const headers=auth?{Authorization:'Bearer '+apiKey}:{};
+ if(data)headers['content-type']='application/json';
+ const r=await fetch('/api/'+path,{method:data?'POST':'GET',headers,body:data?JSON.stringify(data):undefined});
+ const j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j;
+}
+async function act(button,fn){if(busy)return;busy=true;button.disabled=true;button.classList.add('loading');try{await fn()}catch(e){notify(e.message)}finally{busy=false;button.disabled=false;button.classList.remove('loading');}}
+function tab(name){
+ document.querySelectorAll('.tabs').forEach(x=>x.classList.toggle('active',x.id===name));
+ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
+ if(name==='settings')$('apiKey').value=apiKey;
+ if(name==='history')history();
+ if(name==='communities')communities();
+ if(name==='schedule')loadSchedule();
+ if(name==='engagement')loadEngagement();
+ if(name==='analytics')loadAnalytics();
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+$('connection').onclick=()=>tab('settings');
 function element(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
-function renderResults(rows){$('results').replaceChildren();if(!rows.length){$('results').append(element('p','No communities found. Add relevant communities in the Communities tab.','help'));return;}for(const r of rows){const box=element('div',undefined,'result');box.append(element('span',r.score+' / 100','score'),element('strong','r/'+r.name));box.append(element('p',r.eligible?'Eligible for automatic posting':r.reasons.join(' · ')));if(r.topic!==undefined)box.append(element('p','Topic overlap '+r.topic+'% · '+r.sampleSize+' recent posts sampled · '+r.medianComments+' median replies on related posts'));box.append(element('span',r.eligible?'APPROVED':'REVIEW NEEDED','badge'+(r.eligible?'':' blocked')));if(r.url){const link=element('a',' View community ↗');link.href=r.url;link.target='_blank';link.rel='noopener';box.append(link);} $('results').append(box);}}
+
+function draft(){const d={title:$('title').value,text:$('text').value,kind:$('kind').value,url:$('url').value};if(!d.title.trim())throw Error('Write a title first.');if(d.kind==='link'&&!d.url)throw Error('Enter your website URL.');return d;}
+function postType(){$('textField').hidden=$('kind').value==='link';$('urlField').hidden=$('kind').value!=='link';$('count').textContent=$('title').value.length+' / 300';}
+for(const id of ['title','text','kind','url'])$(id).addEventListener('input',postType);
+postType();
+
+function renderResults(rows){
+ $('results').replaceChildren();
+ if(!rows.length){$('results').append(element('p','No communities found. Add relevant communities in the Communities tab.','help'));return;}
+ for(const r of rows){
+  const box=element('div',undefined,'result');
+  box.append(element('span',r.score+' / 100','score'),element('strong','r/'+r.name));
+  box.append(element('p',r.eligible?'Eligible for automatic posting':r.reasons.join(' · ')));
+  if(r.topic!==undefined)box.append(element('p','Topic overlap '+r.topic+'% · '+r.sampleSize+' recent posts sampled · '+r.medianComments+' median replies'));
+  box.append(element('span',r.eligible?'APPROVED':'REVIEW NEEDED','badge'+(r.eligible?'':' blocked')));
+  if(r.url){const link=element('a',' View community');link.href=r.url;link.target='_blank';link.rel='noopener';box.append(link);}
+  $('results').append(box);
+ }
+}
 $('rank').onclick=()=>act($('rank'),async()=>{const data=await api('rank',draft());renderResults(data.results);notify('Ranking complete. Scores measure fit, not guaranteed leads.',true);});
-$('publish').onclick=()=>act($('publish'),async()=>{const d=draft();const result=await api('publish',{...d,requestId:crypto.randomUUID()});if(result.state==='published'){notify((result.duplicate?'Already published':'Published')+' in r/'+result.subreddit+'. See Publishing history for the post link.',true);}else notify(result.error||'Submission is already in progress. Check history before trying again.');});
-$('review').onclick=()=>act($('review'),async()=>{currentRules=await api('community',{name:$('sub').value});$('ruleReview').hidden=false;$('allowed').checked=false;$('subDescription').textContent=currentRules.description;$('rules').textContent=currentRules.rules.length?currentRules.rules.map((r,i)=>(i+1)+'. '+r.short_name+'\n'+r.description).join('\n\n'):'No readable browser rules. Read the full community sidebar and guidelines on Reddit before approving.';$('rulesLink').href='https://www.reddit.com/r/'+currentRules.name+'/about/rules';$('flair').value='';});
-$('approve').onclick=()=>act($('approve'),async()=>{if(!currentRules||!$('allowed').checked)throw Error('Review the rules and confirm your content is permitted.');await api('community',{action:'approve',name:currentRules.name,rulesHash:currentRules.rulesHash,flairId:$('flair').value,promotionAllowed:true});notify('r/'+currentRules.name+' approved.',true);await communities();});
-async function communities(){try{const rows=await api('communities');$('communityList').replaceChildren();if(!rows.length)$('communityList').append(element('p','No approved communities yet.','help'));for(const r of rows){const div=element('div',undefined,'result');div.append(element('strong','r/'+r.name));const b=element('button','Remove','smallbtn');b.onclick=()=>act(b,async()=>{await api('community',{action:'remove',name:r.name});await communities();});div.append(b);$('communityList').append(div);}}catch(e){notify(e.message)}}
-async function history(){try{const rows=await api('history');$('historyRows').replaceChildren();if(!rows.length){const tr=element('tr'),td=element('td','No posts submitted yet.');td.colSpan=4;tr.append(td);$('historyRows').append(tr);}for(const r of rows){const tr=element('tr'),td=element('td');if(r.reddit_url){const a=element('a',r.title);a.href=r.reddit_url;a.target='_blank';a.rel='noopener';td.append(a);}else td.textContent=r.title;td.append(element('p',r.created_at,'subtle'));tr.append(td,element('td','r/'+r.subreddit));const state=element('td',r.state);if(r.error)state.append(element('p',r.error,'help'));tr.append(state);const outcome=element('td',r.clicks+' clicks / '+r.leads+' leads');if(r.state==='published'){const b=element('button','Record outcomes','smallbtn');b.onclick=()=>act(b,async()=>{const clicks=prompt('Total attributed website clicks for this post',r.clicks);if(clicks===null)return;const leads=prompt('Total attributed leads for this post',r.leads);if(leads===null)return;await api('outcomes',{id:r.id,clicks:Number(clicks),leads:Number(leads)});await history();});outcome.append(element('br'),b);}tr.append(outcome);$('historyRows').append(tr);}}catch(e){notify(e.message)}}
-$('test').onclick=()=>act($('test'),async()=>{const j=await api('connection',{});notify('Connected as u/'+j.username+'.',true);$('connection').textContent='● Connected as u/'+j.username;});
-async function status(){try{const j=await api('status');$('connection').textContent=j.connected?'● Browser session saved':'○ Reddit not connected';$('setupStatus').textContent='User: '+j.label+' · ID: '+j.userId+' · '+(j.connected?'Session saved. Test to verify live access.':'Run browser login for this user on the server machine.');}catch(e){$('connection').textContent='○ Connect your app key';notify(e.message);}}$('saveKey').onclick=()=>{const next=$('apiKey').value.trim();if(next!==apiKey){for(const id of ['title','text','url'])$(id).value='';$('results').replaceChildren();$('ruleReview').hidden=true;currentRules=null;postType();}apiKey=next;sessionStorage.setItem('router-api-key',apiKey);status();};status();
-</script></body></html>
+$('publish').onclick=()=>act($('publish'),async()=>{const d=draft();const result=await api('publish',d);if(result.state==='published'){notify((result.duplicate?'Already published':'Published')+' in r/'+result.subreddit+'. See History for the post link.',true);}else notify(result.error||'Submission is already in progress. Check history before trying again.');});
+
+$('review').onclick=()=>act($('review'),async()=>{
+ currentRules=await api('community',{name:$('sub').value});$('ruleReview').hidden=false;$('allowed').checked=false;
+ $('subDescription').textContent=currentRules.description;
+ $('rules').textContent=currentRules.rules.length?currentRules.rules.map((r,i)=>(i+1)+'. '+r.short_name+'\n'+r.description).join('\n\n'):'No readable browser rules. Read the full community sidebar and guidelines on Reddit before approving.';
+ $('rulesLink').href='https://www.reddit.com/r/'+currentRules.name+'/about/rules';
+});
+$('approve').onclick=()=>act($('approve'),async()=>{if(!currentRules||!$('allowed').checked)throw Error('Review the rules and confirm your content is permitted.');await api('community',{action:'approve',name:currentRules.name,rulesHash:currentRules.rulesHash,promotionAllowed:true});notify('r/'+currentRules.name+' approved.',true);await communities();});
+async function communities(){
+ try{
+  const rows=await api('communities');$('communityList').replaceChildren();
+  if(!rows.length){$('communityList').append(element('p','No approved communities yet.','help'));return;}
+  for(const r of rows){
+   const item=element('div',undefined,'item');item.append(element('strong','r/'+r.name,'main'));
+   const b=element('button','Remove','btn small secondary');b.onclick=()=>act(b,async()=>{await api('community',{action:'remove',name:r.name});await communities();});
+   item.append(b);$('communityList').append(item);
+  }
+ }catch(e){notify(e.message)}
+}
+
+function sDraft(){const d={title:$('sTitle').value,text:$('sText').value,kind:$('sKind').value,url:$('sUrl').value};if(!d.title.trim())throw Error('Write a title first.');if(d.kind==='link'&&!d.url)throw Error('Enter your website URL.');if(!$('sWhen').value)throw Error('Pick a date and time.');return d;}
+function sPostType(){$('sTextField').hidden=$('sKind').value==='link';$('sUrlField').hidden=$('sKind').value!=='link';}
+$('sKind').addEventListener('input',sPostType);
+sPostType();
+$('scheduleBtn').onclick=()=>act($('scheduleBtn'),async()=>{const d=sDraft();await api('schedule',{...d,scheduledAt:new Date($('sWhen').value).toISOString()});for(const id of ['sTitle','sText','sUrl'])$(id).value='';notify('Added to the schedule queue.',true);await loadSchedule();});
+async function loadSchedule(){
+ try{
+  const rows=await api('schedule');$('scheduleList').replaceChildren();
+  if(!rows.length){$('scheduleList').append(element('p','Nothing queued.','help'));return;}
+  for(const r of rows){
+   const item=element('div',undefined,'item');
+   const main=element('div',undefined,'main');main.append(element('strong',r.title));main.append(document.createElement('br'));
+   main.append(element('span',new Date(r.scheduled_at).toLocaleString(),'subtle'));
+   item.append(main);item.append(element('span',r.state,'st '+r.state));
+   if(r.state==='pending'){const b=element('button','Cancel','btn small secondary');b.onclick=()=>act(b,async()=>{await api('schedule',{action:'cancel',id:r.id});await loadSchedule();});item.append(b);}
+   if(r.error)item.append(element('p',r.error,'help'));
+   $('scheduleList').append(item);
+  }
+ }catch(e){notify(e.message)}
+}
+
+async function loadEngagement(){
+ try{
+  const data=await api('engagement');
+  $('engagementTargets').replaceChildren();
+  const published=(await api('history')).filter(h=>h.state==='published');
+  if(!published.length){$('engagementTargets').append(element('p','Publish a post first, then enable auto-reply on it here.','help'));}
+  for(const h of published){
+   const target=data.targets.find(t=>t.id===h.id);
+   const item=element('div',undefined,'item');
+   const main=element('div',undefined,'main');main.append(element('strong',h.title));main.append(document.createElement('br'));main.append(element('span','r/'+h.subreddit,'subtle'));item.append(main);
+   const toggle=element('label','','check');const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!target;toggle.append(cb,document.createTextNode(' Auto-reply'));item.append(toggle);
+   const template=document.createElement('input');template.placeholder='Reply template';template.value=target?target.reply_template:'';template.style.minWidth='220px';item.append(template);
+   const save=element('button','Save','btn small secondary');
+   save.onclick=()=>act(save,async()=>{await api('engagement',{id:h.id,enabled:cb.checked,template:template.value});notify('Saved.',true);await loadEngagement();});
+   item.append(save);$('engagementTargets').append(item);
+  }
+  $('engagementHistory').replaceChildren();
+  if(!data.history.length){$('engagementHistory').append(element('p','No replies sent yet.','help'));}
+  for(const r of data.history){const item=element('div',undefined,'item');item.append(element('span',new Date(r.created_at).toLocaleString(),'subtle'));$('engagementHistory').append(item);}
+ }catch(e){notify(e.message)}
+}
+$('runEngagement').onclick=()=>act($('runEngagement'),async()=>{const r=await api('engagement/run',{});notify('Checked '+r.checked+' post(s); sent '+r.replied+' repl'+(r.replied===1?'y':'ies')+'.',true);await loadEngagement();});
+
+async function loadAnalytics(){
+ try{
+  const rows=await api('analytics');$('analyticsRows').replaceChildren();
+  if(!rows.length){const tr=element('tr'),td=element('td','No published posts yet.');td.colSpan=6;tr.append(td);$('analyticsRows').append(tr);return;}
+  for(const r of rows){
+   const tr=element('tr');
+   tr.append(element('td','r/'+r.subreddit),element('td',String(r.posts)),element('td',r.avg_score??'—'),element('td',String(r.clicks||0)),element('td',String(r.leads||0)),element('td',r.conversion!=null?(r.conversion*100).toFixed(1)+'%':'—'));
+   $('analyticsRows').append(tr);
+  }
+ }catch(e){notify(e.message)}
+}
+
+async function history(){
+ try{
+  const rows=await api('history');$('historyRows').replaceChildren();
+  if(!rows.length){const tr=element('tr'),td=element('td','No posts submitted yet.');td.colSpan=4;tr.append(td);$('historyRows').append(tr);return;}
+  for(const r of rows){
+   const tr=element('tr'),td=element('td');
+   if(r.reddit_url){const a=element('a',r.title);a.href=r.reddit_url;a.target='_blank';a.rel='noopener';td.append(a);}else td.textContent=r.title;
+   td.append(element('p',r.created_at,'subtle'));
+   tr.append(td,element('td','r/'+r.subreddit));
+   const state=element('td');state.append(element('span',r.state,'st '+r.state));if(r.error)state.append(element('p',r.error,'help'));
+   tr.append(state);
+   const outcome=element('td',r.clicks+' clicks / '+r.leads+' leads');
+   if(r.state==='published'){
+    const b=element('button','Record outcomes','btn small secondary');
+    b.onclick=()=>act(b,async()=>{const clicks=prompt('Total attributed website clicks for this post',r.clicks);if(clicks===null)return;const leads=prompt('Total attributed leads for this post',r.leads);if(leads===null)return;await api('outcomes',{id:r.id,clicks:Number(clicks),leads:Number(leads)});await history();});
+    outcome.append(document.createElement('br'),b);
+   }
+   tr.append(outcome);$('historyRows').append(tr);
+  }
+ }catch(e){notify(e.message)}
+}
+
+$('signupBtn').onclick=()=>act($('signupBtn'),async()=>{
+ const result=await api('signup',{label:$('signupLabel').value},false);
+ $('signupResult').hidden=false;$('signupId').textContent=result.id;$('signupKey').textContent=result.apiKey;
+ $('signupLoginCmd').textContent='npm run login -- '+result.id;
+ apiKey=result.apiKey;sessionStorage.setItem('router-api-key',apiKey);
+ notify('Account created. Save the API key above — it will not be shown again.',true);
+ status();
+});
+$('copyKey').onclick=()=>{navigator.clipboard?.writeText($('signupKey').textContent);notify('API key copied.',true);};
+
+$('test').onclick=()=>act($('test'),async()=>{const j=await api('connection',{});notify('Connected as u/'+j.username+'.',true);$('connectionText').textContent='Connected as u/'+j.username;$('connection').classList.add('ok');});
+async function status(){
+ try{
+  const j=await api('status');
+  $('connectionText').textContent=j.connected?'Browser session saved':'Reddit not connected';
+  $('connection').classList.toggle('ok',j.connected);
+  $('setupStatus').textContent='User: '+j.label+' · ID: '+j.userId+' · '+(j.connected?'Session saved. Test to verify live access.':'Run browser login for this user on the server machine.');
+ }catch(e){$('connectionText').textContent='Connect your app key';$('connection').classList.remove('ok');}
+}
+$('saveKey').onclick=()=>{
+ const next=$('apiKey').value.trim();
+ if(next!==apiKey){for(const id of ['title','text','url'])$(id).value='';$('results').replaceChildren();$('ruleReview').hidden=true;currentRules=null;postType();}
+ apiKey=next;sessionStorage.setItem('router-api-key',apiKey);status();
+};
+status();
+</script>
+</body>
+</html>

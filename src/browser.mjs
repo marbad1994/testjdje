@@ -28,7 +28,8 @@ export class RedditBrowser {
   if(/blocked by network security|verify you are human|whoa there|security check|you.ve been blocked|captcha/i.test(text))throw new AppError('Reddit requires manual verification. Browser automation stopped.',409);
   if(!await page.locator('#header-bottom-right .user a[href*="/user/"]').count())throw new AppError('Reddit session expired or the page layout changed. Run browser login again.',409);
  }
- async identity(page){await this.goto(page,'/');return {username:(await page.locator('#header-bottom-right .user a[href*="/user/"]').first().innerText()).trim()};}
+ async usernameOnPage(page){return (await page.locator('#header-bottom-right .user a[href*="/user/"]').first().innerText()).trim();}
+ async identity(page){await this.goto(page,'/');return {username:await this.usernameOnPage(page)};}
  async discovery(page,query){await this.goto(page,'/subreddits/search?q='+encodeURIComponent(query));const names=await page.locator('.search-result-subreddit a[href], .thing.subreddit a.title[href]').evaluateAll(nodes=>nodes.map(n=>{try{return new URL(n.href).pathname.match(/^\/r\/([a-z0-9_]+)\/?$/i)?.[1]}catch{return null}}).filter(Boolean));return [...new Set(names.map(subreddit))].slice(0,6);}
  async community(page,name){
   name=subreddit(name);await this.goto(page,'/r/'+name+'/about/rules/');
@@ -70,6 +71,36 @@ export class RedditBrowser {
    const returnedTitle=(await page.locator('.thing.link a.title').first().innerText()).trim();if(returnedTitle!==d.title)throw new Error('Published title mismatch');
    return {state:'published',reddit_url:page.url()};
   }catch{return {state:'uncertain',error:'Reddit did not confirm a matching post. Check your profile before further posting; no automatic retry.'};}
+ }
+ async comments(page,redditUrl){
+  // Reads top-level comments on a post this account already published. Replies, like submit(), only
+  // ever act through this account's own authenticated session — no other identity is read or used.
+  await this.goto(page,new URL(redditUrl).pathname);
+  const me=(await this.usernameOnPage(page)).toLowerCase();
+  const found=await page.locator('.commentarea > .sitetable > .thing.comment').evaluateAll(nodes=>nodes.map(n=>({
+   id:n.getAttribute('data-fullname')||'',
+   author:(n.querySelector(':scope > .entry .author')?.textContent||'').trim(),
+   body:(n.querySelector(':scope > .entry .usertext-body .md')?.textContent||'').trim(),
+   permalink:n.querySelector(':scope > .entry a.bylink')?.href||null
+  })));
+  return found.filter(c=>c.id&&c.body&&c.permalink&&c.author.toLowerCase()!==me);
+ }
+ async reply(page,commentPermalink,text){
+  await this.goto(page,new URL(commentPermalink).pathname);
+  const target=page.locator('.commentarea > .sitetable > .thing.comment').first();
+  if(!await target.count())throw new AppError('Comment no longer present; it may have been removed or deleted.',409);
+  const replyButton=target.locator(':scope > .entry .flat-list.buttons a.reply-button').first();
+  if(!await replyButton.count())throw new AppError('Reply control not found; the comment may be locked.',409);
+  await replyButton.click();
+  const form=target.locator(':scope > form.usertext textarea').first();
+  if(!await form.count())throw new AppError('Reply form did not open.',409);
+  await form.fill(text);
+  const submit=target.locator(':scope > form.usertext button[type="submit"]').first();
+  if(!await submit.count()||!await submit.isEnabled())throw new AppError('Reply submit control unavailable.',409);
+  await submit.click();
+  const posted=await target.locator(':scope > .child .thing.comment .usertext-body .md').first().waitFor({state:'visible',timeout:8000}).then(()=>true).catch(()=>false);
+  if(!posted)throw new AppError('Reddit did not confirm the reply.',409);
+  return {replied:true};
  }
  async login(id){
   if(!this.store.db.prepare('SELECT id FROM users WHERE id=?').get(id))throw new AppError('Unknown user ID.');

@@ -1,8 +1,12 @@
 # Reddit Browser Router — custom MVP
 
+Part of **Dark Suite**, kept in its own repo and deliberately separate from SocialPostAPI's codebase, infra and billing.
+
 User API → your Node.js backend → Playwright headless Chromium → Reddit's rendered website.
 
 This app takes a user's written text or link post, ranks communities, chooses one eligible destination, fills Reddit's browser form, clicks Submit, and returns the confirmed post URL. It does not use Reddit's Data API. This is a runnable source MVP, not a deployed or live-Reddit-validated production service.
+
+Everything here acts through one person's own authenticated Reddit account — never a pool of accounts, never anything that conceals automation from Reddit or evades its anti-abuse systems. Scheduling and engagement automation below extend that same single-account model; they do not change it.
 
 ## Quick start
 
@@ -44,6 +48,14 @@ Send `Authorization: Bearer YOUR_APP_API_KEY` on every `/api/` request. Data, ap
 | POST | `/api/community` | `action:"approve"`, `name`, returned `rulesHash`, `promotionAllowed:true` saves approval |
 | POST | `/api/community` | `action:"remove"`, `name` revokes approval |
 | POST | `/api/outcomes` | `id`, integer `clicks`, integer `leads`; records outcomes of a published post |
+| POST | `/api/schedule` | Draft + `scheduledAt` (future ISO timestamp); queues it for automatic publishing |
+| GET | `/api/schedule` | This user's scheduled queue, most recent first |
+| POST | `/api/schedule` | `action:"cancel"`, `id`; cancels a still-pending scheduled post |
+| POST | `/api/engagement` | `id` (a published post's fingerprint), `enabled`, `template`; configures auto-reply for that post |
+| POST | `/api/engagement/run` | `{}`; checks this user's auto-reply-enabled posts for new comments and replies once, capped at 5 replies |
+| GET | `/api/engagement` | This user's auto-reply targets and reply history |
+| GET | `/api/analytics` | Per-subreddit post count, average match score, clicks, leads and conversion, for this user's published posts |
+| POST | `/api/signup` | **Unauthenticated.** `{"label":"name"}`; creates a user and returns `{id, apiKey}` directly — rate-limited to 5 per source address per hour |
 
 Text draft:
 
@@ -84,6 +96,24 @@ Without approvals, ranking discovers up to six candidates using Reddit's browser
 
 The app reads the rendered rules page, not hidden AutoModerator settings. It cannot interpret every rule semantically. You must approve communities whose actual policies permit your intended content. The first version excludes NSFW and unreadable-rule communities and cannot reliably handle required flair, images, videos, polls, scheduling, or automated comments.
 
+## Self-service signup
+
+`POST /api/signup` with `{"label":"name"}` creates the user and returns `{id, apiKey}` directly — no operator CLI step for this part. It's unauthenticated by design (there's no key yet to send), so it's rate-limited in memory to 5 accounts per source address per hour; behind a reverse proxy, point that limit at the real client address or add your own layer in front. Connecting that user's Reddit account is still a manual, visible-browser step (`npm run login -- USER_ID`) run by whoever operates the server — that part cannot be self-service without giving a stranger a real browser session on your machine, which this MVP does not do.
+
+## Scheduling
+
+`POST /api/schedule` queues a draft with a future `scheduledAt`. A background loop (`SCHEDULE_POLL_SECONDS`, default 60) claims due rows and runs them through the same `publish()` path as posting now — same ranking, same approval requirement, same fingerprint locking. A scheduled post can be canceled any time while it's still `pending`; once claimed it moves to `processing` and then `published`/`blocked`/`uncertain`/`failed`, same states as immediate publishing.
+
+## Engagement (auto-reply)
+
+Scoped tightly on purpose: auto-reply only ever acts on comments left on posts *this account already published*, using one reply template the user writes, through that account's own session — never a different identity, never a different account. `POST /api/engagement` turns it on or off per published post. `POST /api/engagement/run` checks enabled posts for new top-level comments and replies to up to 5 per call, skipping the account's own comments and anything already replied to (tracked in a `replies` table keyed so the same comment can never receive two replies). Each reply pauses 2-4 seconds before the next — ordinary pacing, not detection avoidance. Unattended runs are opt-in via `ENGAGEMENT_INTERVAL_MINUTES` (default off); when set, the server checks every enabled, already-connected account on that interval.
+
+This is not bot engagement farming: there is no mechanism anywhere in this codebase to create additional Reddit accounts, and none is planned. Each user is one person's own account, connected by that person.
+
+## Analytics
+
+`GET /api/analytics` aggregates published posts per subreddit: post count, average match score at publish time, total clicks/leads, and conversion rate. It's meant to answer whether the ranking heuristic's score actually tracks real performance, not just rank candidates.
+
 ## Reliability
 
 SQLite stores keys as hashes, approvals, outcomes and history. An atomic unique fingerprint locks each written draft before submission, preventing concurrent duplicates and later automatic retries—even if callers use different request identifiers. Each user runs at most one browser job, and at most two users run browser jobs concurrently. Return codes include 401 for missing/incorrect app keys, 409 for browser jobs or manual-verification needs, and 429 for exhausted browser capacity.
@@ -102,7 +132,7 @@ The `data/` directory contains sensitive session cookies and local records. Dire
 
 ## Verification performed
 
-`npm test` passes six tests covering draft validation, user/data isolation, rule-change handling, unapproved destinations, atomic duplicate prevention, uncertain outcomes, ranking ambiguity and authenticated HTTP requests. These tests use real local SQLite and a mocked Reddit browser adapter. The frontend JavaScript passes syntax validation.
+`npm test` passes eleven tests covering draft validation, user/data isolation, rule-change handling, unapproved destinations, atomic duplicate prevention, uncertain outcomes, ranking ambiguity, operator lock reset, engagement dedupe/capping, scheduled-post due-processing, analytics aggregation, authenticated HTTP requests, and self-service signup plus its rate limit. These tests use real local SQLite and a mocked Reddit browser adapter. The frontend JavaScript passes syntax validation.
 
 Live browser integration and posting were **not** tested: no Reddit account was connected, and Chromium is not installed in the authoring environment. No real Reddit posts were created. Before real use, validate `src/browser.mjs` against your connected account and manually permitted test community; the selectors are implementation assumptions, not evidence of current live compatibility.
 
