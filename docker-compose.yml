@@ -16,6 +16,48 @@ services:
       timeout: 5s
       retries: 5
 
+  ofapi-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ofapi
+      POSTGRES_PASSWORD: ofapi
+      POSTGRES_DB: ofapi
+    volumes:
+      - ofapi_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ofapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  onlycreator:
+    build:
+      context: https://github.com/marbad1994/OnlyCreatorAPI.git
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      ofapi-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://ofapi:ofapi@ofapi-postgres:5432/ofapi
+      REDIS_URL: redis://redis:6379
+      API_KEY: darksuite-dev-key
+    ports:
+      - "3001:3000"
+
   backend:
     build: ./backend
     restart: unless-stopped
@@ -26,7 +68,7 @@ services:
       DATABASE_URL: postgresql://darksuite:darksuite@postgres:5432/darksuite
       PORT: 4000
       HOST: 0.0.0.0
-      ONLYCREATOR_API_URL: http://host.docker.internal:3001
+      ONLYCREATOR_API_URL: http://onlycreator:3000
     ports:
       - "4000:4000"
 
@@ -35,8 +77,10 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+      - onlycreator
     ports:
       - "4124:80"
 
 volumes:
   pgdata:
+  ofapi_pgdata:
