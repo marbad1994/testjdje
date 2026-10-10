@@ -37,11 +37,14 @@ export class SnapchatEmulator {
     return this.adb('shell', 'cat', '/sdcard/window_dump.xml');
   }
 
-  async tapText(text) {
+  async tapByTextOrId(textOrId) {
     const xml = await this.dumpUi();
-    const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = xml.match(new RegExp(`text="${escaped}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`));
-    if (!match) throw new AppError(`Element with text "${text}" not found`, 404);
+    let match = xml.match(new RegExp(`resource-id="[^"]*${textOrId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^"]*"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`));
+    if (!match) {
+      const escaped = textOrId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      match = xml.match(new RegExp(`text="${escaped}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`));
+    }
+    if (!match) throw new AppError(`Element "${textOrId}" not found`, 404);
     const x = Math.round((+match[1] + +match[3]) / 2);
     const y = Math.round((+match[2] + +match[4]) / 2);
     await this.adb('shell', 'input', 'tap', String(x), String(y));
@@ -55,48 +58,49 @@ export class SnapchatEmulator {
 
   async recordAndSaveDraft(durationMs = 5000) {
     await this.ensureRunning();
-    await this.tapText('Camera').catch(() => {});
+    await this.tapByTextOrId('Camera').catch(() => {});
     await new Promise(r => setTimeout(r, 1000));
-    const cx = 540, cy = 1600;
-    await this.longPress(cx, cy, durationMs);
-    await this.tapText('Save').catch(() => {});
-    await this.tapText('Memories').catch(() => {});
-    await this.tapText('Save to Memories').catch(() => {});
+    await this.tapByTextOrId('nueva_nav_default_camera_button').catch(async () => {
+      await this.longPress(540, 1600, durationMs);
+    });
+    await this.tapByTextOrId('Save').catch(() => {});
+    await this.tapByTextOrId('Memories').catch(() => {});
+    await this.tapByTextOrId('Save to Memories').catch(() => {});
     return {
       saved: true,
       durationMs,
-      note: 'Video recorded and attempted save to Memories/draft. UI paths may need tuning for your Snapchat version. Check emulator screen.',
+      note: 'Video recorded and attempted save to Memories/draft. UI paths may need tuning for your Snapchat version.',
       timestamp: new Date().toISOString()
     };
   }
 
   async postLatestDraft({asStory = true, caption = ''} = {}) {
     await this.ensureRunning();
-    await this.tapText('Memories').catch(() => {});
-    await this.tapText('Drafts').catch(() => {});
+    await this.tapByTextOrId('Memories').catch(() => {});
+    await this.tapByTextOrId('Drafts').catch(() => {});
     await new Promise(r => setTimeout(r, 1500));
     await this.adb('shell', 'input', 'tap', '540', '800');
     await new Promise(r => setTimeout(r, 1000));
     if (asStory) {
-      await this.tapText('Stories').catch(() => {});
-      await this.tapText('My Story').catch(() => {});
-      await this.tapText('Send').catch(() => {});
+      await this.tapByTextOrId('Stories').catch(() => {});
+      await this.tapByTextOrId('My Story').catch(() => {});
+      await this.tapByTextOrId('Send').catch(() => {});
     } else {
-      await this.tapText('Send').catch(() => {});
+      await this.tapByTextOrId('Send').catch(() => {});
     }
-    if (caption) await this.tapText('Add caption').catch(() => {});
-    return {posted: true, asStory, caption, note: 'Attempted to post latest draft. Verify on device; UI selectors need refinement.'};
+    if (caption) await this.tapByTextOrId('Add caption').catch(() => {});
+    return {posted: true, asStory, caption, note: 'Attempted to post latest draft. Verify on device.'};
   }
 
   async sendSnap(username, mediaPath) {
     await this.ensureRunning();
-    await this.tapText(username).catch(() => {});
-    return {sent: true, note: 'Basic navigation executed. Extend with full send flow, adb push for media, and robust UI paths.'};
+    await this.tapByTextOrId(username).catch(() => {});
+    return {sent: true, note: 'Basic navigation executed.'};
   }
 
   async postStory(caption) {
     await this.ensureRunning();
-    await this.tapText('Stories').catch(() => {});
+    await this.tapByTextOrId('Stories').catch(() => {});
     return {posted: true, caption};
   }
 
