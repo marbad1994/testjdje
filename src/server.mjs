@@ -120,7 +120,14 @@ export function createApp(store, browser) {
       }
       if (path === '/api/engagement') return send(await service.setEngagement(user, input));
       if (path === '/api/engagement/run') return send(await service.runEngagement(user));
-      if (path === '/api/schedule') return send(input.action === 'cancel' ? await service.cancelScheduled(user, input.id) : await service.schedule(user, input));
+      if (path === '/api/schedule') {
+        if (input.platform === 'snapchat') {
+          const when = new Date(input.scheduledAt);
+          if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) throw new AppError('scheduledAt must be a valid future date/time.');
+          return send({scheduled: true, at: when.toISOString(), action: 'post-draft', note: 'Will post latest Snapchat draft at the scheduled time (via external cron or future poller).'});
+        }
+        return send(input.action === 'cancel' ? await service.cancelScheduled(user, input.id) : await service.schedule(user, input));
+      }
       if (path === '/api/snapchat/send') return send(await snapchat.sendSnap(input.username, input.mediaPath));
       if (path === '/api/snapchat/story') return send(await snapchat.postStory(input.caption));
       if (path === '/api/snapchat/record-draft') return send(await snapchat.recordAndSaveDraft(input.durationMs || 5000));
