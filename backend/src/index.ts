@@ -1,12 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 const ONLYCREATOR = process.env.ONLYCREATOR_API_URL || 'http://127.0.0.1:3001';
 
@@ -25,9 +25,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, db: 'postgres' }));
 app.post('/api/signup', async (req, res) => {
   const label = String(req.body?.label || 'User').slice(0, 200);
   const key = randomBytes(32).toString('hex');
-  const user = await prisma.user.create({
-    data: { label, keyHash: digest(key) },
-  });
+  const user = await prisma.user.create({ data: { label, keyHash: digest(key) } });
   res.status(201).json({ id: user.id, label: user.label, apiKey: key });
 });
 
@@ -38,7 +36,7 @@ app.get('/api/status', async (req, res) => {
     userId: user.id,
     label: user.label,
     onlyCreatorUrl: ONLYCREATOR,
-    snapchat: { connected: false, note: 'emulator status via separate service' },
+    snapchat: { connected: false },
   });
 });
 
@@ -48,9 +46,29 @@ app.get('/api/history', async (req, res) => {
   const items = await prisma.submission.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
-    take: 50,
+    take: 100,
   });
   res.json(items);
+});
+
+app.post('/api/publish', async (req, res) => {
+  const user = await auth(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  const title = String(req.body?.title || '').trim();
+  const text = String(req.body?.text || '').trim();
+  const subreddit = String(req.body?.subreddit || 'draft').trim();
+  if (!title) return res.status(400).json({ error: 'Title required' });
+  const sub = await prisma.submission.create({
+    data: {
+      userId: user.id,
+      fingerprint: randomUUID(),
+      title,
+      subreddit,
+      state: 'published',
+      redditUrl: null,
+    },
+  });
+  res.json({ id: sub.id, title: sub.title, state: sub.state });
 });
 
 app.get('/api/analytics', async (req, res) => {
@@ -58,9 +76,8 @@ app.get('/api/analytics', async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
   const rows = await prisma.submission.groupBy({
     by: ['subreddit'],
-    where: { userId: user.id, state: 'published' },
+    where: { userId: user.id },
     _count: true,
-    _sum: { clicks: true, leads: true },
   });
   res.json(rows);
 });
