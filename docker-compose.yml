@@ -1,0 +1,14 @@
+services:
+  darksuite:
+    build: .
+    container_name: darksuite
+    restart: unless-stopped
+    ports:
+      - "4123:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      ONLYCREATOR_API_URL: http://127.0.0.1:3001
+      DATA_DIR: /app/data
+    volumes:
+      - ./data:/app/data
