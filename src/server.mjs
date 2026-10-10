@@ -123,6 +123,8 @@ export function createApp(store, browser) {
       if (path === '/api/schedule') return send(input.action === 'cancel' ? await service.cancelScheduled(user, input.id) : await service.schedule(user, input));
       if (path === '/api/snapchat/send') return send(await snapchat.sendSnap(input.username, input.mediaPath));
       if (path === '/api/snapchat/story') return send(await snapchat.postStory(input.caption));
+      if (path === '/api/snapchat/record-draft') return send(await snapchat.recordAndSaveDraft(input.durationMs || 5000));
+      if (path === '/api/snapchat/post-draft') return send(await snapchat.postLatestDraft({asStory: input.asStory !== false, caption: input.caption || ''}));
       return send({error: 'Not found'}, 404);
     } catch (e) {
       send({error: e instanceof AppError ? e.message : 'Operation failed. Check emulator/ADB and UI state; no automatic retry.', ...(e.status ? {} : {code: 'INTERNAL_ERROR'})}, e.status || 500);
