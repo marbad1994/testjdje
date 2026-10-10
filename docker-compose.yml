@@ -42,7 +42,7 @@ services:
 
   onlycreator:
     build:
-      context: https://github.com/marbad1994/OnlyCreatorAPI.git
+      context: ./onlycreator
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
