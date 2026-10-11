@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dark Suite — Reddit Route</title>
-<meta name="description" content="Rank Reddit communities for your written post, publish through your connected Reddit browser session, and manage scheduling, engagement and analytics.">
+<title>Dark Suite</title>
+<meta name="description" content="Reddit Route: rank Reddit communities for your written post and publish through your connected browser session. Snapchat: drive your own device's Snapchat app directly, with every action confirmed or reported uncertain, never claimed blind.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,9 +13,9 @@
 <body>
 <div class="shell">
 <aside class="sidebar" id="sidebar">
- <div class="brand"><span class="brandmark">◩</span> Dark Suite <span class="beta">REDDIT</span></div>
- <div class="nav-label">WORKSPACE</div>
- <nav aria-label="Main navigation">
+ <div class="brand"><span class="brandmark">◩</span> Dark Suite</div>
+ <div class="nav-label">REDDIT</div>
+ <nav aria-label="Reddit navigation">
   <button class="nav active" data-page="compose"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Compose &amp; route</button>
   <button class="nav" data-page="communities"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg> Communities</button>
   <button class="nav" data-page="schedule"><svg class="icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Schedule</button>
@@ -23,12 +23,16 @@
   <button class="nav" data-page="analytics"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Analytics</button>
   <button class="nav" data-page="history"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> History</button>
  </nav>
+ <div class="nav-label">SNAPCHAT</div>
+ <nav aria-label="Snapchat navigation">
+  <button class="nav" data-page="snapchat"><svg class="icon" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Snapchat</button>
+ </nav>
  <div class="nav-label">ACCOUNT</div>
  <nav aria-label="Account navigation">
   <button class="nav" data-page="settings"><svg class="icon" viewBox="0 0 24 24"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg> Settings</button>
  </nav>
  <div class="sidebottom">
-  <p class="side-note">Isolated from the compliant product suite. Your own account, your own browser session — never shared.</p>
+  <p class="side-note">Isolated from the compliant product suite. Your own accounts, your own browser/device sessions — never shared.</p>
  </div>
 </aside>
 <main class="main">
@@ -144,8 +148,47 @@
    </div>
   </section>
 
+  <section class="page" id="snapchat">
+   <div class="heading"><div><span class="eyebrow">Your device, your account</span><h1>Snapchat, driven through your own app.</h1><p>Taps the real Snapchat Android app on your connected emulator/device — no private API, no protocol-level signing. Every action is confirmed from the screen afterward or reported uncertain; never claimed blind.</p></div></div>
+   <div class="layout">
+    <div class="card">
+     <div class="card-head"><h2>Device</h2><span class="tag" id="snapConnTag">Checking…</span></div>
+     <p class="help">Requires <code>adb</code> reachable from this server and a running emulator/device with Snapchat installed. Set <code>SNAPCHAT_ADB_SERIAL</code> if not using the default <code>emulator-5554</code>.</p>
+     <button id="snapStatusBtn" style="margin-top:4px">Check device</button>
+    </div>
+    <div class="card">
+     <h2>Quick actions</h2>
+     <label for="snapCaption">Caption <span class="help">(optional)</span></label>
+     <input id="snapCaption" placeholder="Caption text">
+     <div class="actions" style="margin-top:16px;display:grid;gap:9px">
+      <button class="primary full" id="snapPostDraft">Post latest draft to My Story</button>
+      <button class="full" id="snapStory">Post Story</button>
+      <button class="full" id="snapRecord">Record &amp; save draft (5s)</button>
+     </div>
+    </div>
+   </div>
+   <div class="layout" style="margin-top:18px">
+    <div class="card">
+     <h2>Schedule an action</h2>
+     <label for="snapAction">Action</label>
+     <select id="snapAction">
+      <option value="post-draft">Post latest draft</option>
+      <option value="story">Post story</option>
+      <option value="record-draft">Record &amp; save draft</option>
+      <option value="send">Send to a friend</option>
+     </select>
+     <div id="snapUsernameField" hidden><label for="snapUsername">Friend's username</label><input id="snapUsername"></div>
+     <label for="snapWhen">Run at</label><input id="snapWhen" type="datetime-local">
+     <button class="primary full" id="snapScheduleBtn" style="margin-top:16px">Add to queue</button>
+     <h3 style="margin-top:22px">Queue</h3>
+     <div class="list" id="snapScheduleList">Loading…</div>
+    </div>
+    <div class="card"><h2>Action history</h2><div class="list" id="snapHistory">Loading…</div></div>
+   </div>
+  </section>
+
   <section class="page" id="settings">
-   <div class="heading"><div><span class="eyebrow">Account &amp; browser session</span><h1>Your account. Your browser.</h1><p>Users call this app's API. The backend runs Reddit in headless Chromium — never a shared identity.</p></div></div>
+   <div class="heading"><div><span class="eyebrow">Account &amp; sessions</span><h1>Your accounts. Your devices.</h1><p>Users call this app's API. The backend runs Reddit in headless Chromium and drives Snapchat through your own connected emulator/device — never a shared identity, never a shared session.</p></div></div>
 
    <div class="card" style="max-width:620px">
     <h2><svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>Create your account</h2>
@@ -184,10 +227,11 @@
     <p class="help">Every API request requires <code>Authorization: Bearer YOUR_APP_API_KEY</code> (except <code>/api/signup</code>). Each user has an isolated browser session, approved communities, and history.</p>
     <p><code>POST /api/rank</code> &nbsp;·&nbsp; <code>POST /api/publish</code> &nbsp;·&nbsp; <code>GET /api/history</code></p>
     <p><code>POST /api/schedule</code> &nbsp;·&nbsp; <code>GET /api/schedule</code> &nbsp;·&nbsp; <code>POST /api/engagement</code> &nbsp;·&nbsp; <code>POST /api/engagement/run</code> &nbsp;·&nbsp; <code>GET /api/analytics</code></p>
+    <p><code>POST /api/snapchat/run</code> &nbsp;·&nbsp; <code>POST /api/snapchat/schedule</code> &nbsp;·&nbsp; <code>GET /api/snapchat/schedule</code> &nbsp;·&nbsp; <code>GET /api/snapchat/history</code> &nbsp;·&nbsp; <code>GET /api/snapchat/status</code></p>
    </div>
   </section>
 
-  <footer class="app">Dark Suite &nbsp;/&nbsp; Reddit Route &nbsp;—&nbsp; your content, routed with context.</footer>
+  <footer class="app">Dark Suite &nbsp;—&nbsp; your content, routed with context.</footer>
  </div>
 </main>
 </div>

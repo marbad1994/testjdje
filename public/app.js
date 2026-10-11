@@ -1,5 +1,5 @@
 const $=id=>document.getElementById(id);
-const pageNames={compose:'Compose & route',communities:'Communities',schedule:'Schedule',engagement:'Engagement',analytics:'Analytics',history:'History',settings:'Settings'};
+const pageNames={compose:'Compose & route',communities:'Communities',schedule:'Schedule',engagement:'Engagement',analytics:'Analytics',history:'History',snapchat:'Snapchat',settings:'Settings'};
 let currentRules=null;let busy=false;let apiKey=sessionStorage.getItem('router-api-key')||'';
 
 function notify(message,good=false){
@@ -27,6 +27,7 @@ function go(page){
  if(page==='schedule')loadSchedule();
  if(page==='engagement')loadEngagement();
  if(page==='analytics')loadAnalytics();
+ if(page==='snapchat')loadSnapchat();
 }
 document.querySelectorAll('.nav[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
 $('connection').onclick=()=>go('settings');
@@ -152,6 +153,50 @@ async function history(){
     outcome.append(document.createElement('br'),b);
    }
    tr.append(outcome);$('historyRows').append(tr);
+  }
+ }catch(e){notify(e.message)}
+}
+
+/* snapchat */
+function snapActionType(){$('snapUsernameField').hidden=$('snapAction').value!=='send';}
+$('snapAction').addEventListener('input',snapActionType);
+snapActionType();
+function renderSnapStatus(j){$('snapConnTag').textContent=j.connected?'Connected':'Not connected';$('snapConnTag').className='tag'+(j.connected?' badge green':'');}
+$('snapStatusBtn').onclick=()=>act($('snapStatusBtn'),async()=>{renderSnapStatus(await api('snapchat/status'));});
+$('snapRecord').onclick=()=>act($('snapRecord'),async()=>{const r=await api('snapchat/run',{action:'record-draft',durationMs:5000});notify(r.note||('Recording: '+r.state),r.state==='saved');await loadSnapchat();});
+$('snapPostDraft').onclick=()=>act($('snapPostDraft'),async()=>{const r=await api('snapchat/run',{action:'post-draft',caption:$('snapCaption').value,asStory:true});notify(r.note||('State: '+r.state),r.state==='published');await loadSnapchat();});
+$('snapStory').onclick=()=>act($('snapStory'),async()=>{const r=await api('snapchat/run',{action:'story',caption:$('snapCaption').value});notify(r.note||('State: '+r.state),r.state==='published');await loadSnapchat();});
+$('snapScheduleBtn').onclick=()=>act($('snapScheduleBtn'),async()=>{
+ if(!$('snapWhen').value)throw Error('Pick a date and time.');
+ const action=$('snapAction').value;
+ const body={action,scheduledAt:new Date($('snapWhen').value).toISOString(),caption:$('snapCaption').value};
+ if(action==='send')body.username=$('snapUsername').value;
+ await api('snapchat/schedule',body);
+ notify('Added to the Snapchat queue.',true);
+ await loadSnapchat();
+});
+async function loadSnapchat(){
+ try{
+  const [status,queue,hist]=await Promise.all([api('snapchat/status'),api('snapchat/schedule'),api('snapchat/history')]);
+  renderSnapStatus(status);
+  $('snapScheduleList').replaceChildren();
+  if(!queue.length)$('snapScheduleList').append(element('p','Nothing queued.','help'));
+  for(const r of queue){
+   const payload=r.payload?JSON.parse(r.payload):{};
+   const item=element('div',undefined,'item');
+   const main=element('div',undefined,'main');main.append(element('strong',payload.action||'action'));main.append(document.createElement('br'));main.append(element('span',new Date(r.scheduled_at).toLocaleString(),'muted'));
+   item.append(main);item.append(element('span',r.state,'st '+r.state));
+   if(r.state==='pending'){const b=element('button','Cancel','small');b.onclick=()=>act(b,async()=>{await api('snapchat/schedule',{action:'cancel',id:r.id});await loadSnapchat();});item.append(b);}
+   $('snapScheduleList').append(item);
+  }
+  $('snapHistory').replaceChildren();
+  if(!hist.length)$('snapHistory').append(element('p','No actions yet.','help'));
+  for(const r of hist){
+   const item=element('div',undefined,'item');
+   const main=element('div',undefined,'main');main.append(element('strong',r.action));if(r.caption){main.append(document.createElement('br'));main.append(element('span',r.caption,'muted'));}
+   item.append(main);item.append(element('span',r.state,'st '+r.state));
+   if(r.error)item.append(element('p',r.error,'help'));
+   $('snapHistory').append(item);
   }
  }catch(e){notify(e.message)}
 }

@@ -45,15 +45,56 @@ export class RouterService {
  async schedule(user,input){
   const d=draft(input);const when=new Date(input.scheduledAt);
   if(Number.isNaN(when.getTime())||when.getTime()<=Date.now())throw new AppError('scheduledAt must be a valid future date/time.');
-  const id=this.store.schedule(user.id,d,when.toISOString());return {id,scheduledAt:when.toISOString()};
+  const id=this.store.schedule(user.id,'reddit',when.toISOString(),{title:d.title,kind:d.kind,text:d.text,url:d.url});return {id,scheduledAt:when.toISOString()};
  }
  async cancelScheduled(user,id){this.store.scheduledCancel(user.id,id);return {canceled:true};}
  async runDue(){
-  const due=this.store.due(new Date().toISOString());let processed=0;
+  const due=this.store.due(new Date().toISOString(),'reddit');let processed=0;
   for(const item of due){
    if(!this.store.scheduledClaim(item.user_id,item.id))continue;
    try{const result=await this.publish({id:item.user_id},{title:item.title,kind:item.kind,text:item.text,url:item.url});this.store.scheduledFinish(item.user_id,item.id,result.duplicate?'published':result.state,JSON.stringify(result),result.error||null);}
    catch(e){this.store.scheduledFinish(item.user_id,item.id,'failed',null,e.message);}
+   processed++;
+  }
+  return {processed};
+ }
+}
+
+export class SnapchatService {
+ constructor(store,snapchat){this.store=store;this.snapchat=snapchat;}
+ status(){return this.snapchat.status();}
+ async run(user,action,fields={}){
+  let result;
+  if(action==='record-draft')result=await this.snapchat.recordAndSaveDraft(fields.durationMs||5000);
+  else if(action==='post-draft')result=await this.snapchat.postLatestDraft({asStory:fields.asStory!==false,caption:fields.caption||''});
+  else if(action==='story')result=await this.snapchat.postStory(fields.caption||'');
+  else if(action==='send'){if(!fields.username)throw new AppError('username is required.',400);result=await this.snapchat.sendSnap(fields.username,fields.mediaPath);}
+  else throw new AppError('Unknown Snapchat action: '+action,400);
+  this.store.snapchatRecord(user.id,action,fields.caption||null,fields.username||null,result.state,result.error||null);
+  return result;
+ }
+ async schedule(user,input){
+  const when=new Date(input.scheduledAt);
+  if(Number.isNaN(when.getTime())||when.getTime()<=Date.now())throw new AppError('scheduledAt must be a valid future date/time.');
+  const action=input.action;
+  if(!['record-draft','post-draft','story','send'].includes(action))throw new AppError('action must be record-draft, post-draft, story, or send.');
+  if(action==='send'&&!input.username)throw new AppError('username is required to schedule a direct send.');
+  const payload={action,caption:String(input.caption||'').slice(0,500),asStory:input.asStory!==false,username:input.username?String(input.username).slice(0,100):undefined,durationMs:input.durationMs,mediaPath:input.mediaPath?String(input.mediaPath):undefined};
+  const id=this.store.schedule(user.id,'snapchat',when.toISOString(),{payload});
+  return {id,scheduledAt:when.toISOString()};
+ }
+ async cancelScheduled(user,id){this.store.scheduledCancel(user.id,id);return {canceled:true};}
+ history(user){return this.store.snapchatHistory(user.id);}
+ scheduledList(user){return this.store.scheduledList(user.id,'snapchat');}
+ async runDue(){
+  const due=this.store.due(new Date().toISOString(),'snapchat');let processed=0;
+  for(const item of due){
+   if(!this.store.scheduledClaim(item.user_id,item.id))continue;
+   try{
+    const payload=item.payload?JSON.parse(item.payload):{};
+    const result=await this.run({id:item.user_id},payload.action,payload);
+    this.store.scheduledFinish(item.user_id,item.id,result.state,JSON.stringify(result),result.error||null);
+   }catch(e){this.store.scheduledFinish(item.user_id,item.id,'failed',null,e.message);}
    processed++;
   }
   return {processed};

@@ -1,16 +1,22 @@
-# Reddit Browser Router — custom MVP
+# Dark Suite — Reddit + Snapchat
 
-Part of **Dark Suite**, kept in its own repo and deliberately separate from SocialPostAPI's codebase, infra and billing.
+Kept in its own repo and deliberately separate from SocialPostAPI's codebase, infra and billing.
 
-User API → your Node.js backend → Playwright headless Chromium → Reddit's rendered website.
+**Reddit Route**: User API → your Node.js backend → Playwright headless Chromium → Reddit's rendered website. Takes a user's written text or link post, ranks communities, chooses one eligible destination, fills Reddit's browser form, clicks Submit, and returns the confirmed post URL. It does not use Reddit's Data API.
 
-This app takes a user's written text or link post, ranks communities, chooses one eligible destination, fills Reddit's browser form, clicks Submit, and returns the confirmed post URL. It does not use Reddit's Data API. This is a runnable source MVP, not a deployed or live-Reddit-validated production service.
+**Snapchat**: drives the real Snapchat Android app on your own connected emulator/device via ADB + `uiautomator` — the same screens a person would tap. No private API, no protocol-level signing.
 
-Everything here acts through one person's own authenticated Reddit account — never a pool of accounts, never anything that conceals automation from Reddit or evades its anti-abuse systems. Scheduling and engagement automation below extend that same single-account model; they do not change it.
+This is a runnable source MVP, not a deployed or live-validated production service for either platform.
+
+Everything here acts through one person's own authenticated account on one platform at a time — never a pool of accounts, never anything that conceals automation or evades a platform's anti-abuse systems. Scheduling and engagement automation below extend that same single-account model; they do not change it. **OnlyFans/OnlyCreatorAPI integration was considered and explicitly excluded** — see Design below.
 
 ## Design
 
-`public/` (`index.html` + `style.css` + `app.js`, no build step — same vanilla pattern as before, just split into files instead of one inline blob) adapts the visual design from a kit the operator provided: dark purple/Manrope+DM Sans SaaS shell, sidebar+topbar layout, mobile hamburger nav, responsive down to 320px. The kit also contained a backend integration plan — written as direct instructions to an AI agent — to build this out as a full multi-platform workspace with `marbad1994/OnlyCreatorAPI` as the backend. That part was deliberately not adopted: OnlyCreatorAPI's core mechanism is CAPTCHA-solving (NopeCHA) and forged request-signing specifically to defeat OnlyFans' bot detection, which is a different category from everything else in this repo. Only the static visual design (confirmed to make no network calls) was reused, retargeted to this app's actual Reddit-only feature set — no OnlyFans/Snapchat/WhatsApp tiles or invented billing/developer-portal pages that don't exist here.
+`public/` (`index.html` + `style.css` + `app.js`, no build step — vanilla, split into files instead of one inline blob) adapts the visual design from a kit the operator provided: dark purple/Manrope+DM Sans SaaS shell, sidebar+topbar layout, mobile hamburger nav, responsive down to 320px.
+
+The kit also contained a backend integration plan — written as direct instructions to an AI agent — to build this out as a full multi-platform workspace with `marbad1994/OnlyCreatorAPI` as the backend. That part was not adopted: OnlyCreatorAPI's core mechanism is CAPTCHA-solving (NopeCHA) and forged request-signing specifically to defeat OnlyFans' bot detection, a different category from everything else in this repo, and the operator confirmed excluding it. Only the static visual design (confirmed to make no network calls) was reused.
+
+A Snapchat automation module (ADB/`uiautomator`-based, no CAPTCHA-solving or protocol-level evasion) was added to this repo separately from this design kit. It's included and was hardened here to match Reddit Route's safety model — see **Snapchat** below for what changed and why.
 
 ## Quick start
 
@@ -60,6 +66,12 @@ Send `Authorization: Bearer YOUR_APP_API_KEY` on every `/api/` request. Data, ap
 | GET | `/api/engagement` | This user's auto-reply targets and reply history |
 | GET | `/api/analytics` | Per-subreddit post count, average match score, clicks, leads and conversion, for this user's published posts |
 | POST | `/api/signup` | **Unauthenticated.** `{"label":"name"}`; creates a user and returns `{id, apiKey}` directly — rate-limited to 5 per source address per hour |
+| GET | `/api/snapchat/status` | Whether the ADB device/emulator is connected, and its current focused window |
+| POST | `/api/snapchat/run` | `action` (`record-draft`\|`post-draft`\|`story`\|`send`) + action fields; runs it immediately and records the outcome to history |
+| POST | `/api/snapchat/schedule` | `action`, `scheduledAt` (future ISO timestamp) + action fields; queues it |
+| GET | `/api/snapchat/schedule` | This user's Snapchat queue, most recent first |
+| POST | `/api/snapchat/schedule` | `action:"cancel"`, `id`; cancels a still-pending Snapchat queue item |
+| GET | `/api/snapchat/history` | This user's Snapchat action history |
 
 Text draft:
 
@@ -118,6 +130,19 @@ This is not bot engagement farming: there is no mechanism anywhere in this codeb
 
 `GET /api/analytics` aggregates published posts per subreddit: post count, average match score at publish time, total clicks/leads, and conversion rate. It's meant to answer whether the ranking heuristic's score actually tracks real performance, not just rank candidates.
 
+## Snapchat
+
+Drives the real Snapchat Android app on one connected emulator/device via ADB (`adb shell input tap`, `uiautomator dump` to find elements by resource-id or text) — not Snapchat's private API, no CAPTCHA-solving, no request-signing. Configure the device with `SNAPCHAT_ADB_SERIAL` (default `emulator-5554`) and run `adb connect`/start the emulator yourself before using it; the server does not manage the device's lifecycle.
+
+Hardened to match Reddit Route's no-blind-success rule, since the version this was built from (pulled in from a parallel push to this repo) swallowed every step's failure silently and always reported `{posted:true}` regardless of what actually happened on screen:
+
+- Every required step (`src/snapchat.mjs`'s `tap(textOrId)`) now throws a clear `AppError` if the expected element isn't found, instead of silently continuing to the next step. A verification prompt, update dialog, or unfamiliar screen now surfaces as an error, not a no-op.
+- Every action reports `state: 'published'`/`'saved'` only when it can positively confirm the outcome from the UI afterward (e.g., the drafts screen actually cleared after Send); otherwise it reports `'uncertain'` and says so, the same honesty standard `src/browser.mjs` already holds for Reddit.
+- Scheduling is real: `POST /api/snapchat/schedule` persists to the same `scheduled` table Reddit uses (a `platform` column distinguishes them), polled by the same background loop, with the same claim-before-run locking against double-processing.
+- Every attempt — immediate or scheduled — is written to a `snapchat_posts` history table. Nothing is fire-and-forget.
+
+What this doesn't change: the selectors (`Camera`, `nueva_nav_default_camera_button`, `Save to Memories`, etc.) are implementation assumptions against one version of the Snapchat app, same caveat as Reddit's DOM selectors — validate against your own connected device before trusting it, and expect to need to update them as the app changes. `sendSnap` in particular has no post-action confirmation check yet (noted in its `note` field).
+
 ## Reliability
 
 SQLite stores keys as hashes, approvals, outcomes and history. An atomic unique fingerprint locks each written draft before submission, preventing concurrent duplicates and later automatic retries—even if callers use different request identifiers. Each user runs at most one browser job, and at most two users run browser jobs concurrently. Return codes include 401 for missing/incorrect app keys, 409 for browser jobs or manual-verification needs, and 429 for exhausted browser capacity.
@@ -130,15 +155,25 @@ The browser adapter uses **old.reddit.com** and ordinary rendered DOM selectors 
 
 Default host is loopback. Copy `.env.example` to `.env` only if needed. Use a private VM or desktop that supports Chromium; this backend is not compatible with browserless serverless runtimes. For remote user API access, place it behind an HTTPS reverse proxy, retain authentication, restrict operator access, and allow a long upstream timeout. Never expose API keys over public HTTP.
 
-This is an operator-managed, multi-user MVP. Initial Reddit login occurs on the worker machine through a visible browser. A hosted self-service SaaS would additionally need a secure browser-session onboarding interface, key rotation/revocation, durable job queues, stronger operational monitoring, and live Reddit adapter validation. Those features are not included. Do not give users unrestricted access to your server or another user's browser session.
+This is an operator-managed, multi-user MVP. Initial Reddit login occurs on the worker machine through a visible browser; the Snapchat device/emulator is connected and managed separately by the operator. A hosted self-service SaaS would additionally need a secure browser-session onboarding interface, key rotation/revocation, durable job queues, stronger operational monitoring, and live adapter validation for both platforms. Those features are not included. Do not give users unrestricted access to your server, another user's browser session, or the Snapchat device.
+
+### Docker
+
+```bash
+cp .env.example .env   # fill in real values, including SNAPCHAT_ADB_SERIAL if not using the default
+docker compose up -d --build
+docker compose logs -f darksuite
+```
+
+The image installs Playwright's Chromium (`--with-deps`) and the `adb` client at build time, so Reddit works out of the box and Snapchat works once your emulator/device is reachable from the container (same Docker network, or `adb connect host:port` to one running elsewhere). It does not run or manage the emulator itself. `./data` is bind-mounted for the SQLite database and Reddit session files — back it up the same way as a non-Docker deployment (see above).
 
 The `data/` directory contains sensitive session cookies and local records. Directory permissions are 0700 and database/session files are 0600 on supported systems. Keep it outside source control, restrict and encrypt backups, and avoid copying it into downloaded builds. Browser contexts load only the session file corresponding to the authenticated API user's UUID. No browser session, database or real API key is included in this archive.
 
 ## Verification performed
 
-`npm test` passes eleven tests covering draft validation, user/data isolation, rule-change handling, unapproved destinations, atomic duplicate prevention, uncertain outcomes, ranking ambiguity, operator lock reset, engagement dedupe/capping, scheduled-post due-processing, analytics aggregation, authenticated HTTP requests, and self-service signup plus its rate limit. These tests use real local SQLite and a mocked Reddit browser adapter. The frontend JavaScript passes syntax validation.
+`npm test` passes thirteen tests covering draft validation, user/data isolation, rule-change handling, unapproved destinations, atomic duplicate prevention, uncertain outcomes, ranking ambiguity, operator lock reset, engagement dedupe/capping, scheduled-post due-processing, analytics aggregation, Snapchat action recording/scheduling/platform isolation, authenticated HTTP requests (including that `/onlyfans` is gone), and self-service signup plus its rate limit. These tests use real local SQLite and mocked Reddit browser / Snapchat emulator adapters. The frontend JavaScript passes syntax validation.
 
-Live browser integration and posting were **not** tested: no Reddit account was connected, and Chromium is not installed in the authoring environment. No real Reddit posts were created. Before real use, validate `src/browser.mjs` against your connected account and manually permitted test community; the selectors are implementation assumptions, not evidence of current live compatibility.
+Live browser integration and device automation were **not** tested: no Reddit account, Snapchat account, Android emulator, or ADB installation exists in the authoring environment. No real Reddit posts or Snapchat actions were created. Before real use, validate `src/browser.mjs` against your connected Reddit account and `src/snapchat.mjs` against your connected device — both files' selectors are implementation assumptions, not evidence of current live compatibility.
 
 ## References
 

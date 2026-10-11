@@ -1,0 +1,15 @@
+services:
+  darksuite:
+    build: .
+    container_name: darksuite
+    restart: unless-stopped
+    ports:
+      - "4123:3000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATA_DIR: /app/data
+      # SNAPCHAT_ADB_SERIAL: emulator-5554
+      # SNAPCHAT_PACKAGE: com.snapchat.android
+    volumes:
+      - ./data:/app/data
