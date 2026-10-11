@@ -8,6 +8,10 @@ This app takes a user's written text or link post, ranks communities, chooses on
 
 Everything here acts through one person's own authenticated Reddit account — never a pool of accounts, never anything that conceals automation from Reddit or evades its anti-abuse systems. Scheduling and engagement automation below extend that same single-account model; they do not change it.
 
+## Design
+
+`public/` (`index.html` + `style.css` + `app.js`, no build step — same vanilla pattern as before, just split into files instead of one inline blob) adapts the visual design from a kit the operator provided: dark purple/Manrope+DM Sans SaaS shell, sidebar+topbar layout, mobile hamburger nav, responsive down to 320px. The kit also contained a backend integration plan — written as direct instructions to an AI agent — to build this out as a full multi-platform workspace with `marbad1994/OnlyCreatorAPI` as the backend. That part was deliberately not adopted: OnlyCreatorAPI's core mechanism is CAPTCHA-solving (NopeCHA) and forged request-signing specifically to defeat OnlyFans' bot detection, which is a different category from everything else in this repo. Only the static visual design (confirmed to make no network calls) was reused, retargeted to this app's actual Reddit-only feature set — no OnlyFans/Snapchat/WhatsApp tiles or invented billing/developer-portal pages that don't exist here.
+
 ## Quick start
 
 Requires Node.js 22.13+ and a machine that can run Chromium. A visible desktop is required for initial login; subsequent jobs run headlessly.

@@ -6,6 +6,8 @@ import {RedditBrowser} from './browser.mjs';
 import {RouterService} from './service.mjs';
 import {AppError} from './core.mjs';
 const readBody=async(req)=>{let bytes=0;const chunks=[];for await(const part of req){bytes+=part.length;if(bytes>70000)throw new AppError('Request too large.',413);chunks.push(part);}try{return JSON.parse(Buffer.concat(chunks).toString())}catch{throw new AppError('Invalid JSON.');}};
+const CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; frame-ancestors 'none'";
+const STATIC_FILES={'/style.css':'text/css; charset=utf-8','/app.js':'text/javascript; charset=utf-8'};
 export function createApp(store,browser){
  const service=new RouterService(store,browser);const signupAttempts=new Map();
  const allowSignup=(ip)=>{const now=Date.now();const windowMs=3600000;const recent=(signupAttempts.get(ip)||[]).filter(t=>now-t<windowMs);if(recent.length>=5)return false;recent.push(now);signupAttempts.set(ip,recent);return true;};
@@ -13,7 +15,8 @@ export function createApp(store,browser){
   const send=(data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));};
   try{
    const path=new URL(req.url,'http://localhost').pathname;
-   if(path==='/'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','content-security-policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"});res.end(await readFile(new URL('../public/index.html',import.meta.url)));return;}
+   if(path==='/'&&req.method==='GET'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','content-security-policy':CSP});res.end(await readFile(new URL('../public/index.html',import.meta.url)));return;}
+   if(path in STATIC_FILES&&req.method==='GET'){res.writeHead(200,{'content-type':STATIC_FILES[path],'cache-control':'no-store','content-security-policy':CSP});res.end(await readFile(new URL('../public'+path,import.meta.url)));return;}
    if(path==='/api/signup'&&req.method==='POST'){
     if(!req.headers['content-type']?.startsWith('application/json'))throw new AppError('Use application/json.',415);
     if(!allowSignup(req.socket.remoteAddress||'unknown'))throw new AppError('Too many accounts created from this address recently. Try again later.',429);
