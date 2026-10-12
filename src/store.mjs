@@ -12,7 +12,8 @@ export function openStore(directory=process.env.DATA_DIR||'data'){
  CREATE TABLE IF NOT EXISTS submissions(user_id TEXT NOT NULL,id TEXT NOT NULL,title TEXT NOT NULL,subreddit TEXT NOT NULL,state TEXT NOT NULL,reddit_url TEXT,error TEXT,score INTEGER,reply_enabled INTEGER NOT NULL DEFAULT 0,reply_template TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,clicks INTEGER NOT NULL DEFAULT 0,leads INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(user_id,id),FOREIGN KEY(user_id) REFERENCES users(id));
  CREATE TABLE IF NOT EXISTS replies(user_id TEXT NOT NULL,comment_id TEXT NOT NULL,submission_id TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(user_id,comment_id),FOREIGN KEY(user_id) REFERENCES users(id));
  CREATE TABLE IF NOT EXISTS scheduled(user_id TEXT NOT NULL,id TEXT NOT NULL,platform TEXT NOT NULL DEFAULT 'reddit',title TEXT NOT NULL DEFAULT '',kind TEXT NOT NULL DEFAULT '',text TEXT NOT NULL DEFAULT '',url TEXT NOT NULL DEFAULT '',payload TEXT,scheduled_at TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'pending',result TEXT,error TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(user_id,id),FOREIGN KEY(user_id) REFERENCES users(id));
- CREATE TABLE IF NOT EXISTS snapchat_posts(user_id TEXT NOT NULL,id TEXT NOT NULL,action TEXT NOT NULL,caption TEXT,target TEXT,state TEXT NOT NULL,error TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(user_id,id),FOREIGN KEY(user_id) REFERENCES users(id));`);
+ CREATE TABLE IF NOT EXISTS snapchat_posts(user_id TEXT NOT NULL,id TEXT NOT NULL,action TEXT NOT NULL,caption TEXT,target TEXT,state TEXT NOT NULL,error TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(user_id,id),FOREIGN KEY(user_id) REFERENCES users(id));
+ CREATE TABLE IF NOT EXISTS devices(platform TEXT NOT NULL,user_id TEXT NOT NULL,serial TEXT NOT NULL,assigned_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(platform,user_id),UNIQUE(platform,serial),FOREIGN KEY(user_id) REFERENCES users(id));`);
  return {root,db,
  createUser(label){if(!label?.trim())throw new AppError('User label required.');const id=randomUUID(),key=randomBytes(32).toString('hex');db.prepare('INSERT INTO users VALUES(?,?,?)').run(id,label,digest(key));return {id,apiKey:key};},
  user(key){return typeof key==='string'?db.prepare('SELECT id,label FROM users WHERE key_hash=?').get(digest(key)):undefined;},
@@ -41,6 +42,16 @@ export function openStore(directory=process.env.DATA_DIR||'data'){
  scheduledFinish(id,sid,state,result=null,error=null){db.prepare('UPDATE scheduled SET state=?,result=?,error=? WHERE user_id=? AND id=?').run(state,result,error,id,sid);},
  snapchatRecord(id,action,caption,target,state,error=null){const sid=randomUUID();db.prepare('INSERT INTO snapchat_posts(user_id,id,action,caption,target,state,error) VALUES(?,?,?,?,?,?,?)').run(id,sid,action,caption||null,target||null,state,error);return sid;},
  snapchatHistory(id){return db.prepare('SELECT * FROM snapchat_posts WHERE user_id=? ORDER BY created_at DESC, rowid DESC LIMIT 100').all(id);},
+ deviceFor(platform,userId){return db.prepare('SELECT serial FROM devices WHERE platform=? AND user_id=?').get(platform,userId)?.serial;},
+ assignDevice(platform,userId,pool){
+  const existing=this.deviceFor(platform,userId);if(existing)return existing;
+  const used=new Set(db.prepare('SELECT serial FROM devices WHERE platform=?').all(platform).map(r=>r.serial));
+  const free=pool.find(s=>!used.has(s));
+  if(!free)throw new AppError('No free '+platform+' device in the pool right now. Ask the operator to add more devices, or try again once one frees up.',503);
+  db.prepare('INSERT INTO devices(platform,user_id,serial) VALUES(?,?,?)').run(platform,userId,free);
+  return free;
+ },
+ releaseDevice(platform,userId){db.prepare('DELETE FROM devices WHERE platform=? AND user_id=?').run(platform,userId);},
  close(){db.close();}
  };
 }

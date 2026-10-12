@@ -66,7 +66,8 @@ Send `Authorization: Bearer YOUR_APP_API_KEY` on every `/api/` request. Data, ap
 | GET | `/api/engagement` | This user's auto-reply targets and reply history |
 | GET | `/api/analytics` | Per-subreddit post count, average match score, clicks, leads and conversion, for this user's published posts |
 | POST | `/api/signup` | **Unauthenticated.** `{"label":"name"}`; creates a user and returns `{id, apiKey}` directly — rate-limited to 5 per source address per hour |
-| GET | `/api/snapchat/status` | Whether the ADB device/emulator is connected, and its current focused window |
+| POST | `/api/snapchat/connect` | `{}`; assigns this user the next free device from the pool (idempotent - returns the same one if already assigned) |
+| GET | `/api/snapchat/status` | `{assigned:false}` if no device yet, else whether it's actually reachable and its current focused window |
 | POST | `/api/snapchat/run` | `action` (`record-draft`\|`post-draft`\|`story`\|`send`) + action fields; runs it immediately and records the outcome to history |
 | POST | `/api/snapchat/schedule` | `action`, `scheduledAt` (future ISO timestamp) + action fields; queues it |
 | GET | `/api/snapchat/schedule` | This user's Snapchat queue, most recent first |
@@ -132,7 +133,17 @@ This is not bot engagement farming: there is no mechanism anywhere in this codeb
 
 ## Snapchat
 
-Drives the real Snapchat Android app on one connected emulator/device via ADB (`adb shell input tap`, `uiautomator dump` to find elements by resource-id or text) — not Snapchat's private API, no CAPTCHA-solving, no request-signing. Configure the device with `SNAPCHAT_ADB_SERIAL` (default `emulator-5554`) and run `adb connect`/start the emulator yourself before using it; the server does not manage the device's lifecycle.
+Drives the real Snapchat Android app on a connected emulator/device via ADB (`adb shell input tap`, `uiautomator dump` to find elements by resource-id or text) — not Snapchat's private API, no CAPTCHA-solving, no request-signing.
+
+### Device pool and per-user assignment
+
+Each end user needs their own device — one shared emulator can't serve multiple people's Snapchat accounts, and manually standing one up per customer isn't something a non-technical end user can do. `SNAPCHAT_DEVICE_POOL` (comma-separated adb serials) names the pool the operator has stood up; `SnapchatService` auto-assigns each user the next free device on their first `POST /api/snapchat/connect` and they keep it (tracked in the `devices` table, one user per serial, never shared). `docker-compose.yml` ships this already wired up: a couple of `redroid` (Remote Android in Docker) containers alongside the app, started together with `docker compose up`, with `docker-entrypoint.sh` running the one-time `adb connect` to each pool member on boot so the operator never does that by hand. Scale the pool by copying a `redroid-N` block and adding its serial to `SNAPCHAT_DEVICE_POOL`.
+
+**What this does and doesn't solve.** It removes the manual-emulator-babysitting problem entirely — the pool is part of the stack, devices are assigned automatically, nothing end-user-facing mentions adb or env vars (see the Settings/Snapchat tabs' collapsed "technical details" sections). It does **not** make the one-time Snapchat login self-service: someone with hands-on access to that specific device still has to log the real Snapchat account into it once, directly on the device, before a user is assigned there. That step can't be automated without either the server handling the user's password (explicitly rejected — see below) or the end user physically operating that device themselves. This is the same shape of gap Reddit Route already has (`npm run login` needs local hands-on access too) — fixing it for both platforms without weakening either one's security model is follow-up work, not solved here.
+
+**Explicitly rejected approach:** having the end user type their Snapchat credentials into this app's UI, then relaying/typing that password into the device via ADB automatically. That would mean the server handles a live platform password and a fully automated process performs the login — a strictly worse security posture than today's (no password ever reaches the server), structurally identical to credential-harvesting tooling regardless of intent, and against Snapchat's terms regardless of retention policy. Not built, not planned.
+
+Redroid needs the host kernel's `binder_linux`/`ashmem_linux` modules loaded — check before relying on it on a given VPS, it's not universal.
 
 Hardened to match Reddit Route's no-blind-success rule, since the version this was built from (pulled in from a parallel push to this repo) swallowed every step's failure silently and always reported `{posted:true}` regardless of what actually happened on screen:
 
@@ -171,7 +182,7 @@ The `data/` directory contains sensitive session cookies and local records. Dire
 
 ## Verification performed
 
-`npm test` passes thirteen tests covering draft validation, user/data isolation, rule-change handling, unapproved destinations, atomic duplicate prevention, uncertain outcomes, ranking ambiguity, operator lock reset, engagement dedupe/capping, scheduled-post due-processing, analytics aggregation, Snapchat action recording/scheduling/platform isolation, authenticated HTTP requests (including that `/onlyfans` is gone), and self-service signup plus its rate limit. These tests use real local SQLite and mocked Reddit browser / Snapchat emulator adapters. The frontend JavaScript passes syntax validation.
+`npm test` passes fourteen tests covering draft validation, user/data isolation, rule-change handling, unapproved destinations, atomic duplicate prevention, uncertain outcomes, ranking ambiguity, operator lock reset, engagement dedupe/capping, scheduled-post due-processing, analytics aggregation, Snapchat action recording/scheduling/platform isolation, Snapchat device-pool assignment (idempotent, no double-booking, rejects when exhausted), authenticated HTTP requests (including that `/onlyfans` is gone), and self-service signup plus its rate limit. These tests use real local SQLite and mocked Reddit browser / Snapchat emulator adapters. The frontend JavaScript passes syntax validation.
 
 Live browser integration and device automation were **not** tested: no Reddit account, Snapchat account, Android emulator, or ADB installation exists in the authoring environment. No real Reddit posts or Snapchat actions were created. Before real use, validate `src/browser.mjs` against your connected Reddit account and `src/snapchat.mjs` against your connected device — both files' selectors are implementation assumptions, not evidence of current live compatibility.
 

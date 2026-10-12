@@ -1,4 +1,5 @@
 import {draft,subreddit,digest,scoreCommunity,choose,AppError,terms} from './core.mjs';
+import {SnapchatEmulator} from './snapchat.mjs';
 export class RouterService {
  constructor(store,browser){this.store=store;this.browser=browser;}
  async rankOnPage(user,d,page){
@@ -61,14 +62,36 @@ export class RouterService {
 }
 
 export class SnapchatService {
- constructor(store,snapchat){this.store=store;this.snapchat=snapchat;}
- status(){return this.snapchat.status();}
+ // pool: adb serials the operator stood up (e.g. several redroid containers via docker-compose).
+ // Each user is assigned one on first connect and keeps it - never created dynamically, never
+ // shared between two users at once. makeEmulator is swappable so tests can inject a mock.
+ constructor(store,pool=[],makeEmulator=(serial)=>new SnapchatEmulator({serial})){this.store=store;this.pool=pool;this.makeEmulator=makeEmulator;this.emulators=new Map();}
+ emulatorFor(serial){if(!this.emulators.has(serial))this.emulators.set(serial,this.makeEmulator(serial));return this.emulators.get(serial);}
+ connect(user){
+  let serial=this.store.deviceFor('snapchat',user.id);
+  if(!serial){
+   if(!this.pool.length)throw new AppError('No Snapchat devices available right now. Ask the operator to add one to the pool.',503);
+   serial=this.store.assignDevice('snapchat',user.id,this.pool);
+  }
+  return {serial};
+ }
+ async status(user){
+  const serial=this.store.deviceFor('snapchat',user.id);
+  if(!serial)return {assigned:false};
+  return {assigned:true,serial,...(await this.emulatorFor(serial).status())};
+ }
+ deviceFor(user){
+  const serial=this.store.deviceFor('snapchat',user.id);
+  if(!serial)throw new AppError('Connect a Snapchat device first.',409);
+  return this.emulatorFor(serial);
+ }
  async run(user,action,fields={}){
+  const device=this.deviceFor(user);
   let result;
-  if(action==='record-draft')result=await this.snapchat.recordAndSaveDraft(fields.durationMs||5000);
-  else if(action==='post-draft')result=await this.snapchat.postLatestDraft({asStory:fields.asStory!==false,caption:fields.caption||''});
-  else if(action==='story')result=await this.snapchat.postStory(fields.caption||'');
-  else if(action==='send'){if(!fields.username)throw new AppError('username is required.',400);result=await this.snapchat.sendSnap(fields.username,fields.mediaPath);}
+  if(action==='record-draft')result=await device.recordAndSaveDraft(fields.durationMs||5000);
+  else if(action==='post-draft')result=await device.postLatestDraft({asStory:fields.asStory!==false,caption:fields.caption||''});
+  else if(action==='story')result=await device.postStory(fields.caption||'');
+  else if(action==='send'){if(!fields.username)throw new AppError('username is required.',400);result=await device.sendSnap(fields.username,fields.mediaPath);}
   else throw new AppError('Unknown Snapchat action: '+action,400);
   this.store.snapchatRecord(user.id,action,fields.caption||null,fields.username||null,result.state,result.error||null);
   return result;

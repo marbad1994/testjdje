@@ -3,13 +3,59 @@ services:
     build: .
     container_name: darksuite
     restart: unless-stopped
+    depends_on:
+      - redroid-1
+      - redroid-2
     ports:
       - "4123:3000"
     environment:
       HOST: 0.0.0.0
       PORT: 3000
       DATA_DIR: /app/data
-      # SNAPCHAT_ADB_SERIAL: emulator-5554
-      # SNAPCHAT_PACKAGE: com.snapchat.android
+      SNAPCHAT_DEVICE_POOL: redroid-1:5555,redroid-2:5555
     volumes:
       - ./data:/app/data
+    networks:
+      - darksuite-net
+
+  # Snapchat device pool: one redroid (Remote Android in Docker) container per
+  # concurrent end user you want to support. Add more blocks like these (new
+  # service name, new host port, new redroid-N:5555 entry in
+  # SNAPCHAT_DEVICE_POOL above) to grow the pool - nothing else to change.
+  #
+  # Needs the host kernel's binder_linux/ashmem_linux modules loaded
+  # (`modprobe binder_linux ashmem_linux` on most distros; not available on
+  # every VPS kernel - check before relying on this). Each container needs
+  # someone to install Snapchat and log in on it once (see README) before
+  # any user is assigned to it - the pool makes devices available
+  # automatically, it doesn't create logged-in Snapchat sessions by itself.
+  redroid-1:
+    image: redroid/redroid:11.0.0-latest
+    container_name: darksuite-redroid-1
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "5561:5555"
+    volumes:
+      - redroid1-data:/data
+    networks:
+      - darksuite-net
+
+  redroid-2:
+    image: redroid/redroid:11.0.0-latest
+    container_name: darksuite-redroid-2
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "5588:5555"
+    volumes:
+      - redroid2-data:/data
+    networks:
+      - darksuite-net
+
+networks:
+  darksuite-net:
+
+volumes:
+  redroid1-data:
+  redroid2-data:

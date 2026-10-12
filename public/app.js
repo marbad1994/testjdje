@@ -161,7 +161,26 @@ async function history(){
 function snapActionType(){$('snapUsernameField').hidden=$('snapAction').value!=='send';}
 $('snapAction').addEventListener('input',snapActionType);
 snapActionType();
-function renderSnapStatus(j){$('snapConnTag').textContent=j.connected?'Connected':'Not connected';$('snapConnTag').className='tag'+(j.connected?' badge green':'');}
+function renderSnapStatus(j){
+ const actionButtons=[$('snapPostDraft'),$('snapStory'),$('snapRecord'),$('snapScheduleBtn')];
+ if(!j.assigned){
+  $('snapConnTag').textContent='Not connected';$('snapConnTag').className='tag';
+  $('snapDeviceHelp').textContent='Connect a Snapchat device to start posting.';
+  $('snapConnectBtn').hidden=false;$('snapStatusBtn').hidden=true;
+  actionButtons.forEach(b=>b.disabled=true);
+ }else if(!j.connected){
+  $('snapConnTag').textContent='Not responding';$('snapConnTag').className='tag badge orange';
+  $('snapDeviceHelp').textContent="Your device is assigned but isn't responding right now. If this doesn't clear up, contact support.";
+  $('snapConnectBtn').hidden=true;$('snapStatusBtn').hidden=false;
+  actionButtons.forEach(b=>b.disabled=true);
+ }else{
+  $('snapConnTag').textContent='Connected';$('snapConnTag').className='tag badge green';
+  $('snapDeviceHelp').textContent='Your Snapchat device is connected and ready.';
+  $('snapConnectBtn').hidden=true;$('snapStatusBtn').hidden=false;
+  actionButtons.forEach(b=>b.disabled=false);
+ }
+}
+$('snapConnectBtn').onclick=()=>act($('snapConnectBtn'),async()=>{await api('snapchat/connect',{});notify('Device assigned. Checking connection…',true);await loadSnapchat();});
 $('snapStatusBtn').onclick=()=>act($('snapStatusBtn'),async()=>{renderSnapStatus(await api('snapchat/status'));});
 $('snapRecord').onclick=()=>act($('snapRecord'),async()=>{const r=await api('snapchat/run',{action:'record-draft',durationMs:5000});notify(r.note||('Recording: '+r.state),r.state==='saved');await loadSnapchat();});
 $('snapPostDraft').onclick=()=>act($('snapPostDraft'),async()=>{const r=await api('snapchat/run',{action:'post-draft',caption:$('snapCaption').value,asStory:true});notify(r.note||('State: '+r.state),r.state==='published');await loadSnapchat();});

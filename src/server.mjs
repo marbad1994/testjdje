@@ -3,14 +3,14 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {openStore} from './store.mjs';
 import {RedditBrowser} from './browser.mjs';
-import {SnapchatEmulator} from './snapchat.mjs';
 import {RouterService,SnapchatService} from './service.mjs';
 import {AppError} from './core.mjs';
 const readBody=async(req)=>{let bytes=0;const chunks=[];for await(const part of req){bytes+=part.length;if(bytes>70000)throw new AppError('Request too large.',413);chunks.push(part);}try{return JSON.parse(Buffer.concat(chunks).toString())}catch{throw new AppError('Invalid JSON.');}};
 const CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; frame-ancestors 'none'";
 const STATIC_FILES={'/style.css':'text/css; charset=utf-8','/app.js':'text/javascript; charset=utf-8'};
-export function createApp(store,browser,snapchat=new SnapchatEmulator()){
- const service=new RouterService(store,browser);const snap=new SnapchatService(store,snapchat);const signupAttempts=new Map();
+export const devicePoolFromEnv=()=>(process.env.SNAPCHAT_DEVICE_POOL||'').split(',').map(s=>s.trim()).filter(Boolean);
+export function createApp(store,browser,snap=new SnapchatService(store,devicePoolFromEnv())){
+ const service=new RouterService(store,browser);const signupAttempts=new Map();
  const allowSignup=(ip)=>{const now=Date.now();const windowMs=3600000;const recent=(signupAttempts.get(ip)||[]).filter(t=>now-t<windowMs);if(recent.length>=5)return false;recent.push(now);signupAttempts.set(ip,recent);return true;};
  return createServer(async(req,res)=>{
   const send=(data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));};
@@ -34,7 +34,7 @@ export function createApp(store,browser,snapchat=new SnapchatEmulator()){
     if(path==='/api/engagement')return send({targets:store.engagementTargets(user.id),history:store.replyHistory(user.id)});
     if(path==='/api/schedule')return send(store.scheduledList(user.id,'reddit'));
     if(path==='/api/analytics')return send(store.analytics(user.id));
-    if(path==='/api/snapchat/status')return send(await snap.status());
+    if(path==='/api/snapchat/status')return send(await snap.status(user));
     if(path==='/api/snapchat/history')return send(snap.history(user));
     if(path==='/api/snapchat/schedule')return send(snap.scheduledList(user));
    }
@@ -49,6 +49,7 @@ export function createApp(store,browser,snapchat=new SnapchatEmulator()){
    if(path==='/api/engagement')return send(await service.setEngagement(user,input));
    if(path==='/api/engagement/run')return send(await service.runEngagement(user));
    if(path==='/api/schedule')return send(input.action==='cancel'?await service.cancelScheduled(user,input.id):await service.schedule(user,input));
+   if(path==='/api/snapchat/connect')return send(snap.connect(user));
    if(path==='/api/snapchat/run')return send(await snap.run(user,input.action,input));
    if(path==='/api/snapchat/schedule')return send(input.action==='cancel'?await snap.cancelScheduled(user,input.id):await snap.schedule(user,input));
    return send({error:'Not found'},404);
@@ -56,8 +57,11 @@ export function createApp(store,browser,snapchat=new SnapchatEmulator()){
  });
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){
- const store=openStore();const browser=new RedditBrowser(store);const snapchat=new SnapchatEmulator();const server=createApp(store,browser,snapchat);const port=Number(process.env.PORT||3000);const host=process.env.HOST||'127.0.0.1';server.listen(port,host,()=>console.log('Dark Suite (Reddit + Snapchat) listening on http://'+host+':'+port));
- const service=new RouterService(store,browser);const snap=new SnapchatService(store,snapchat);
+ const store=openStore();const browser=new RedditBrowser(store);
+ const pool=devicePoolFromEnv();const snap=new SnapchatService(store,pool);
+ if(pool.length)console.log('Snapchat device pool: '+pool.join(', '));else console.log('No SNAPCHAT_DEVICE_POOL configured - Snapchat connect will be unavailable until the operator sets one.');
+ const server=createApp(store,browser,snap);const port=Number(process.env.PORT||3000);const host=process.env.HOST||'127.0.0.1';server.listen(port,host,()=>console.log('Dark Suite (Reddit + Snapchat) listening on http://'+host+':'+port));
+ const service=new RouterService(store,browser);
  const schedulePollMs=Math.max(1,Number(process.env.SCHEDULE_POLL_SECONDS||60))*1000;
  const scheduleTimer=setInterval(()=>{
   service.runDue().catch(e=>console.error('Scheduled Reddit publish check failed: '+e.message));

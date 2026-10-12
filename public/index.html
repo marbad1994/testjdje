@@ -153,17 +153,22 @@
    <div class="layout">
     <div class="card">
      <div class="card-head"><h2>Device</h2><span class="tag" id="snapConnTag">Checking…</span></div>
-     <p class="help">Requires <code>adb</code> reachable from this server and a running emulator/device with Snapchat installed. Set <code>SNAPCHAT_ADB_SERIAL</code> if not using the default <code>emulator-5554</code>.</p>
-     <button id="snapStatusBtn" style="margin-top:4px">Check device</button>
+     <p class="help" id="snapDeviceHelp">Connect a Snapchat device to start posting.</p>
+     <button class="primary" id="snapConnectBtn" style="margin-top:4px">Connect Snapchat</button>
+     <button id="snapStatusBtn" style="margin-top:4px" hidden>Refresh status</button>
+     <details style="margin-top:16px">
+      <summary class="help" style="cursor:pointer">Technical details</summary>
+      <p class="help" style="margin-top:8px">Devices come from a pool the operator configures (<code>SNAPCHAT_DEVICE_POOL</code>). You're assigned one automatically and keep it. Someone still needs to log Snapchat into that device once — this app never collects your Snapchat password.</p>
+     </details>
     </div>
     <div class="card">
      <h2>Quick actions</h2>
      <label for="snapCaption">Caption <span class="help">(optional)</span></label>
      <input id="snapCaption" placeholder="Caption text">
      <div class="actions" style="margin-top:16px;display:grid;gap:9px">
-      <button class="primary full" id="snapPostDraft">Post latest draft to My Story</button>
-      <button class="full" id="snapStory">Post Story</button>
-      <button class="full" id="snapRecord">Record &amp; save draft (5s)</button>
+      <button class="primary full" id="snapPostDraft" disabled>Post latest draft to My Story</button>
+      <button class="full" id="snapStory" disabled>Post Story</button>
+      <button class="full" id="snapRecord" disabled>Record &amp; save draft (5s)</button>
      </div>
     </div>
    </div>
@@ -179,7 +184,7 @@
      </select>
      <div id="snapUsernameField" hidden><label for="snapUsername">Friend's username</label><input id="snapUsername"></div>
      <label for="snapWhen">Run at</label><input id="snapWhen" type="datetime-local">
-     <button class="primary full" id="snapScheduleBtn" style="margin-top:16px">Add to queue</button>
+     <button class="primary full" id="snapScheduleBtn" style="margin-top:16px" disabled>Add to queue</button>
      <h3 style="margin-top:22px">Queue</h3>
      <div class="list" id="snapScheduleList">Loading…</div>
     </div>
@@ -212,14 +217,18 @@
     <label for="apiKey">Your app API key</label>
     <input id="apiKey" type="password" autocomplete="off" placeholder="API key issued for your user">
     <button id="saveKey" style="margin-top:12px">Connect to this app</button>
-    <ol class="help" style="padding-left:18px;line-height:1.9">
-     <li>Create your account above, or have the operator run <code>npm run user -- "User name"</code>.</li>
-     <li>On the machine running the app, connect your Reddit session: <code>npm run login -- USER_ID</code>. A visible browser opens for manual login and verification.</li>
-     <li>The session is saved privately for your user. All ranking and posting jobs then run headlessly through rendered Reddit pages.</li>
-     <li>Test the connection, approve relevant communities, then submit your written post.</li>
-    </ol>
+    <p class="help" id="redditConnectNote" style="margin-top:14px">Linking your Reddit account is a one-time step — it needs someone with access to this server to run it, since it opens a real browser for you to log in (this app never asks for or sees your Reddit password). Contact support to get connected.</p>
     <button id="test">Test browser session</button>
     <p class="help" style="margin-top:12px">If Reddit requires verification or the page layout changes, the browser stops and reports the issue. No CAPTCHA bypass, vote manipulation, or multi-account automation — ever.</p>
+    <details style="margin-top:16px">
+     <summary class="help" style="cursor:pointer">Technical details (for whoever manages this server)</summary>
+     <ol class="help" style="padding-left:18px;line-height:1.9;margin-top:8px">
+      <li>Create the account above, or have the operator run <code>npm run user -- "User name"</code>.</li>
+      <li>On the machine running the app, connect the Reddit session: <code>npm run login -- USER_ID</code>. A visible browser opens for manual login and verification.</li>
+      <li>The session is saved privately for that user. All ranking and posting jobs then run headlessly through rendered Reddit pages.</li>
+      <li>Test the connection, approve relevant communities, then submit the written post.</li>
+     </ol>
+    </details>
    </div>
 
    <div class="card" style="max-width:620px;margin-top:16px">
