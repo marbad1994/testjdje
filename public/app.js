@@ -6,6 +6,16 @@ function notify(message,good=false){
  $('notice').innerHTML=(good?'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>':'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>')+'<span>'+message+'</span>';
  $('notice').className='notice show'+(good?' good':'');
 }
+function panelError(id,message,colspan){
+ const el=$(id);el.replaceChildren();
+ if(colspan){const tr=element('tr'),td=element('td',message,'help');td.colSpan=colspan;tr.append(td);el.append(tr);}
+ else el.append(element('p',message,'help'));
+}
+function needsKey(id,colspan){
+ if(apiKey)return false;
+ panelError(id,'Enter your API key in Settings to see this.',colspan);
+ return true;
+}
 async function api(path,data,auth=true){
  const headers=auth?{Authorization:'Bearer '+apiKey}:{};
  if(data)headers['content-type']='application/json';
@@ -64,6 +74,7 @@ $('review').onclick=()=>act($('review'),async()=>{
 });
 $('approve').onclick=()=>act($('approve'),async()=>{if(!currentRules||!$('allowed').checked)throw Error('Review the rules and confirm your content is permitted.');await api('community',{action:'approve',name:currentRules.name,rulesHash:currentRules.rulesHash,promotionAllowed:true});notify('r/'+currentRules.name+' approved.',true);await communities();});
 async function communities(){
+ if(needsKey('communityList'))return;
  try{
   const rows=await api('communities');$('communityList').replaceChildren();
   if(!rows.length){$('communityList').append(element('p','No approved communities yet.','help'));return;}
@@ -72,7 +83,7 @@ async function communities(){
    const b=element('button','Remove','small');b.onclick=()=>act(b,async()=>{await api('community',{action:'remove',name:r.name});await communities();});
    item.append(b);$('communityList').append(item);
   }
- }catch(e){notify(e.message)}
+ }catch(e){panelError('communityList',e.message);notify(e.message)}
 }
 
 /* schedule */
@@ -82,6 +93,7 @@ $('sKind').addEventListener('input',sPostType);
 sPostType();
 $('scheduleBtn').onclick=()=>act($('scheduleBtn'),async()=>{const d=sDraft();await api('schedule',{...d,scheduledAt:new Date($('sWhen').value).toISOString()});for(const id of ['sTitle','sText','sUrl'])$(id).value='';notify('Added to the schedule queue.',true);await loadSchedule();});
 async function loadSchedule(){
+ if(needsKey('scheduleList'))return;
  try{
   const rows=await api('schedule');$('scheduleList').replaceChildren();
   if(!rows.length){$('scheduleList').append(element('p','Nothing queued.','help'));return;}
@@ -94,11 +106,12 @@ async function loadSchedule(){
    if(r.error)item.append(element('p',r.error,'help'));
    $('scheduleList').append(item);
   }
- }catch(e){notify(e.message)}
+ }catch(e){panelError('scheduleList',e.message);notify(e.message)}
 }
 
 /* engagement */
 async function loadEngagement(){
+ if(needsKey('engagementTargets')){panelError('engagementHistory','Enter your API key in Settings to see this.');return;}
  try{
   const data=await api('engagement');
   $('engagementTargets').replaceChildren();
@@ -117,12 +130,13 @@ async function loadEngagement(){
   $('engagementHistory').replaceChildren();
   if(!data.history.length){$('engagementHistory').append(element('p','No replies sent yet.','help'));}
   for(const r of data.history){const item=element('div',undefined,'item');item.append(element('span',new Date(r.created_at).toLocaleString(),'muted'));$('engagementHistory').append(item);}
- }catch(e){notify(e.message)}
+ }catch(e){panelError('engagementTargets',e.message);panelError('engagementHistory',e.message);notify(e.message)}
 }
 $('runEngagement').onclick=()=>act($('runEngagement'),async()=>{const r=await api('engagement/run',{});notify('Checked '+r.checked+' post(s); sent '+r.replied+' repl'+(r.replied===1?'y':'ies')+'.',true);await loadEngagement();});
 
 /* analytics */
 async function loadAnalytics(){
+ if(needsKey('analyticsRows',6))return;
  try{
   const rows=await api('analytics');$('analyticsRows').replaceChildren();
   if(!rows.length){const tr=element('tr'),td=element('td','No published posts yet.');td.colSpan=6;tr.append(td);$('analyticsRows').append(tr);return;}
@@ -131,11 +145,12 @@ async function loadAnalytics(){
    tr.append(element('td','r/'+r.subreddit),element('td',String(r.posts)),element('td',r.avg_score??'—'),element('td',String(r.clicks||0)),element('td',String(r.leads||0)),element('td',r.conversion!=null?(r.conversion*100).toFixed(1)+'%':'—'));
    $('analyticsRows').append(tr);
   }
- }catch(e){notify(e.message)}
+ }catch(e){panelError('analyticsRows',e.message,6);notify(e.message)}
 }
 
 /* history */
 async function history(){
+ if(needsKey('historyRows',4))return;
  try{
   const rows=await api('history');$('historyRows').replaceChildren();
   if(!rows.length){const tr=element('tr'),td=element('td','No posts submitted yet.');td.colSpan=4;tr.append(td);$('historyRows').append(tr);return;}
@@ -154,7 +169,7 @@ async function history(){
    }
    tr.append(outcome);$('historyRows').append(tr);
   }
- }catch(e){notify(e.message)}
+ }catch(e){panelError('historyRows',e.message,4);notify(e.message)}
 }
 
 /* snapchat */
@@ -194,11 +209,19 @@ $('snapScheduleBtn').onclick=()=>act($('snapScheduleBtn'),async()=>{
  notify('Added to the Snapchat queue.',true);
  await loadSnapchat();
 });
+function snapError(message){
+ $('snapConnTag').textContent='Error';$('snapConnTag').className='tag badge red';
+ $('snapDeviceHelp').textContent=message;$('snapConnectBtn').hidden=true;$('snapStatusBtn').hidden=false;
+ [$('snapPostDraft'),$('snapStory'),$('snapRecord'),$('snapScheduleBtn')].forEach(b=>b.disabled=true);
+}
 async function loadSnapchat(){
- try{
-  const [status,queue,hist]=await Promise.all([api('snapchat/status'),api('snapchat/schedule'),api('snapchat/history')]);
-  renderSnapStatus(status);
-  $('snapScheduleList').replaceChildren();
+ if(!apiKey){snapError('Enter your API key in Settings to see this.');panelError('snapScheduleList','Enter your API key in Settings to see this.');panelError('snapHistory','Enter your API key in Settings to see this.');return;}
+ const [statusR,queueR,histR]=await Promise.allSettled([api('snapchat/status'),api('snapchat/schedule'),api('snapchat/history')]);
+ if(statusR.status==='fulfilled')renderSnapStatus(statusR.value);else snapError(statusR.reason.message);
+ $('snapScheduleList').replaceChildren();
+ if(queueR.status==='rejected'){panelError('snapScheduleList',queueR.reason.message);}
+ else{
+  const queue=queueR.value;
   if(!queue.length)$('snapScheduleList').append(element('p','Nothing queued.','help'));
   for(const r of queue){
    const payload=r.payload?JSON.parse(r.payload):{};
@@ -208,7 +231,11 @@ async function loadSnapchat(){
    if(r.state==='pending'){const b=element('button','Cancel','small');b.onclick=()=>act(b,async()=>{await api('snapchat/schedule',{action:'cancel',id:r.id});await loadSnapchat();});item.append(b);}
    $('snapScheduleList').append(item);
   }
-  $('snapHistory').replaceChildren();
+ }
+ $('snapHistory').replaceChildren();
+ if(histR.status==='rejected'){panelError('snapHistory',histR.reason.message);}
+ else{
+  const hist=histR.value;
   if(!hist.length)$('snapHistory').append(element('p','No actions yet.','help'));
   for(const r of hist){
    const item=element('div',undefined,'item');
@@ -217,7 +244,7 @@ async function loadSnapchat(){
    if(r.error)item.append(element('p',r.error,'help'));
    $('snapHistory').append(item);
   }
- }catch(e){notify(e.message)}
+ }
 }
 
 /* settings: signup + connection */
